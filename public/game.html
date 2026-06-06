@@ -23,7 +23,6 @@
   .tv-logo{font-family:'Lilita One',cursive;font-size:34px;color:var(--teal);letter-spacing:-1px;}
   .tv-round{font-size:17px;font-weight:800;color:var(--muted);letter-spacing:3px;text-transform:uppercase;}
 
-  /* ── PROMPT ── */
   #screen-prompt{text-align:center;}
   .prompt-eyebrow{font-size:18px;font-weight:800;letter-spacing:5px;color:var(--muted);text-transform:uppercase;margin-bottom:20px;}
   .prompt-big{font-family:'Lilita One',cursive;font-size:108px;line-height:1.05;color:var(--text);margin-bottom:48px;max-width:1400px;animation:promptIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both;}
@@ -43,7 +42,6 @@
   @keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
   .pulse-anim{animation:timerPulse 0.5s ease-in-out infinite;}
 
-  /* ── GALLERY ── */
   #screen-gallery{text-align:center;}
   .gallery-eyebrow{font-size:17px;font-weight:800;letter-spacing:5px;color:var(--muted);text-transform:uppercase;margin-bottom:28px;}
   .reveal-stage{width:500px;height:500px;background:var(--card);border:3px solid var(--teal);border-radius:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 70px var(--teal-glow);position:relative;overflow:hidden;margin:0 auto 28px;}
@@ -59,7 +57,6 @@
   .grid-lbl{position:absolute;top:9px;left:9px;background:rgba(0,0,0,0.8);border-radius:7px;padding:3px 10px;font-family:'Lilita One',cursive;font-size:18px;color:var(--teal);}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-  /* ── VOTING ── */
   #screen-voting{text-align:center;}
   .vote-eyebrow{font-size:17px;font-weight:800;letter-spacing:4px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
   .vote-prompt{font-family:'Lilita One',cursive;font-size:48px;color:var(--teal);margin-bottom:36px;}
@@ -74,7 +71,6 @@
   .vote-count{font-size:26px;font-weight:900;}
   .vote-timer{font-size:18px;font-weight:800;color:var(--muted);margin-top:28px;}
 
-  /* ── RESULTS ── */
   #screen-results{text-align:center;}
   .results-eyebrow{font-size:16px;font-weight:800;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
   .winner-card{display:flex;align-items:center;gap:32px;background:var(--card);border:2px solid var(--teal);border-radius:28px;padding:28px 44px;box-shadow:0 0 60px var(--teal-glow);margin:14px auto 28px;max-width:780px;animation:fadeIn 0.6s ease both;}
@@ -93,7 +89,6 @@
   .next-btn{margin-top:32px;background:var(--teal);color:var(--black);border:none;border-radius:100px;padding:18px 56px;font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;cursor:pointer;box-shadow:0 0 40px var(--teal-glow);letter-spacing:1px;transition:transform 0.15s;}
   .next-btn:hover{transform:scale(1.04);}
 
-  /* ── FINAL ── */
   #screen-final{text-align:center;}
   .final-confetti{font-size:48px;margin-bottom:12px;animation:bounce 0.8s ease-in-out infinite alternate;}
   @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-16px)}}
@@ -118,7 +113,7 @@
   <div class="tv-round" id="round-label">Round 1 of 10</div>
 </div>
 
-<!-- ══════ PROMPT ══════ -->
+<!-- PROMPT -->
 <div class="screen active" id="screen-prompt">
   <div class="prompt-eyebrow">This round's prompt</div>
   <div class="prompt-big" id="prompt-text">Loading…</div>
@@ -141,7 +136,7 @@
   </div>
 </div>
 
-<!-- ══════ GALLERY ══════ -->
+<!-- GALLERY -->
 <div class="screen" id="screen-gallery">
   <div class="gallery-eyebrow" id="gallery-label">Revealing photos…</div>
   <div id="reveal-wrap">
@@ -154,7 +149,7 @@
   <div class="gallery-grid" id="gallery-grid" style="display:none;"></div>
 </div>
 
-<!-- ══════ VOTING ══════ -->
+<!-- VOTING -->
 <div class="screen" id="screen-voting">
   <div class="vote-eyebrow">Vote on your phone!</div>
   <div class="vote-prompt" id="vote-prompt-text">"…"</div>
@@ -162,7 +157,7 @@
   <div class="vote-timer">⏱ <span id="vote-timer-num">30</span>s remaining</div>
 </div>
 
-<!-- ══════ RESULTS ══════ -->
+<!-- RESULTS -->
 <div class="screen" id="screen-results">
   <div class="results-eyebrow" id="results-round-label">Round 1 Results</div>
   <div class="winner-card" id="winner-card">
@@ -177,7 +172,7 @@
   <button class="next-btn" id="next-btn" onclick="advanceRound()">Next Round →</button>
 </div>
 
-<!-- ══════ FINAL ══════ -->
+<!-- FINAL -->
 <div class="screen" id="screen-final">
   <div class="final-confetti">🎉</div>
   <div class="final-title" id="final-winner-name">Winner!</div>
@@ -186,11 +181,10 @@
   <button class="play-again-btn" onclick="playAgain()">Play Again →</button>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, update, set, get, remove, serverTimestamp }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
+<!-- Firebase compat SDK — matches index.html and join.html -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
 const firebaseConfig = {
   apiKey: "AIzaSyA9MXjistGBfnMBnLAkVYS3gSsX3LerPNA",
   authDomain: "pic-it-bf268.firebaseapp.com",
@@ -201,27 +195,30 @@ const firebaseConfig = {
   appId: "1:992063984744:web:e3222850cae7f51d9a57dd"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-// ── Get room code from URL ──
+// Get room code from URL
 const params = new URLSearchParams(window.location.search);
 const ROOM = params.get('room');
-if (!ROOM) { document.body.innerHTML = '<div style="color:white;text-align:center;padding:100px;font-family:Nunito,sans-serif;font-size:32px;">No room code found.<br><br><a href="/" style="color:#00C9B1">← Back to home</a></div>'; }
+if (!ROOM) {
+  document.body.innerHTML = '<div style="color:white;text-align:center;padding:100px;font-family:Nunito,sans-serif;font-size:32px;">No room code found.<br><br><a href="/" style="color:#00C9B1">← Back to home</a></div>';
+}
 
 const PROMPTS = [
-  'Search "pizza"','I don\'t know why I have this in my camera roll',
-  'I can smell this pic','Selfie!','Something adorable',
-  'Something I\'m proud of','Search "car"',
+  'Search "pizza"', 'I don\'t know why I have this in my camera roll',
+  'I can smell this pic', 'Selfie!', 'Something adorable',
+  'Something I\'m proud of', 'Search "car"',
   'This photo will be on the cover of my autobiography',
-  'Search "sunset"','Search "Birthday"','Screenshot',
-  'First photo on my phone','Last photo I took','New Year\'s Eve',
-  'Thanksgiving','Search "drink"','I don\'t remember this… obviously',
-  'My mom took this photo','This is what I think I look like',
-  'Search "Halloween"','Search "sunglasses"',
+  'Search "sunset"', 'Search "Birthday"', 'Screenshot',
+  'First photo on my phone', 'Last photo I took', 'New Year\'s Eve',
+  'Thanksgiving', 'Search "drink"', 'I don\'t remember this… obviously',
+  'My mom took this photo', 'This is what I think I look like',
+  'Search "Halloween"', 'Search "sunglasses"',
   'I wish they were playing Pic It with us right now',
-  'Search "couch"','Dog or cat'
+  'Search "couch"', 'Dog or cat'
 ];
+
 let usedPrompts = [];
 let timerInterval = null;
 let voteTimerInterval = null;
@@ -231,15 +228,12 @@ const TIMER_DURATION = 60;
 const VOTE_DURATION = 30;
 const TOTAL_ROUNDS = 10;
 
-// ── Screen nav ──
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-// ──────────────────────────────────────────
-// WEB AUDIO — BUILDS IN INTENSITY
-// ──────────────────────────────────────────
+// ── WEB AUDIO ──
 let audioCtx = null;
 let masterGain = null;
 let beatScheduler = null;
@@ -270,7 +264,7 @@ function playSnare(t) {
   g.gain.setValueAtTime(0.38,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.14);
   s.buffer=buf; s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t+0.18);
 }
-function playHat(t,open=false) {
+function playHat(t, open=false) {
   const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*0.045,audioCtx.sampleRate);
   const d=buf.getChannelData(0);
   for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.5);
@@ -328,13 +322,9 @@ function stopMusic() {
   }
 }
 
-// ──────────────────────────────────────────
-// GAME LOGIC
-// ──────────────────────────────────────────
-
-// ── Listen to game ──
+// ── LISTEN TO GAME ──
 if (ROOM) {
-  onValue(ref(db, `games/${ROOM}`), (snap) => {
+  db.ref(`games/${ROOM}`).on('value', (snap) => {
     if (!snap.exists()) return;
     gameData = snap.val();
     syncGameState(gameData);
@@ -353,7 +343,7 @@ function syncGameState(game) {
 // ── PROMPT ──
 let lastPromptRound = -1;
 function showPromptScreen(game) {
-  if (game.round === lastPromptRound) return; // already showing this round
+  if (game.round === lastPromptRound) return;
   lastPromptRound = game.round;
   clearInterval(timerInterval);
   timerSecsLeft = TIMER_DURATION;
@@ -364,7 +354,6 @@ function showPromptScreen(game) {
   document.getElementById('tv-timer').style.color = 'var(--teal)';
   document.getElementById('tv-timer').classList.remove('pulse-anim');
 
-  // Build submission dots from players
   const players = game.players || {};
   const playerCount = Object.keys(players).length;
   const subs = game.submissions || {};
@@ -382,8 +371,7 @@ function showPromptScreen(game) {
     document.getElementById('tv-timer').textContent = timerSecsLeft;
     document.getElementById('tv-arc').style.strokeDashoffset = 490.09 * (elapsed / TIMER_DURATION);
 
-    // Re-render sub dots
-    const currentSubs = gameData?.submissions || {};
+    const currentSubs = gameData ? (gameData.submissions || {}) : {};
     renderSubDots(playerCount, Object.keys(currentSubs).length);
 
     if (timerSecsLeft <= 10) {
@@ -395,8 +383,7 @@ function showPromptScreen(game) {
     if (timerSecsLeft <= 0) {
       clearInterval(timerInterval);
       stopMusic();
-      // Move to gallery
-      update(ref(db, `games/${ROOM}`), { status: 'gallery' });
+      db.ref(`games/${ROOM}`).update({ status: 'gallery' });
     }
   }, 500);
 }
@@ -407,11 +394,10 @@ function renderSubDots(total, done) {
     `<div class="sub-dot ${i < done ? 'done' : ''}"></div>`
   ).join('');
   document.getElementById('sub-count').textContent = `${done} of ${total}`;
-  // If all submitted early — move to gallery
-  if (done >= total && total > 0 && gameData?.status === 'playing') {
+  if (done >= total && total > 0 && gameData && gameData.status === 'playing') {
     clearInterval(timerInterval);
     stopMusic();
-    setTimeout(() => update(ref(db, `games/${ROOM}`), { status: 'gallery' }), 1200);
+    setTimeout(() => db.ref(`games/${ROOM}`).update({ status: 'gallery' }), 1200);
   }
 }
 
@@ -428,7 +414,7 @@ function showGalleryScreen(game) {
   }));
 
   if (photos.length === 0) {
-    update(ref(db, `games/${ROOM}`), { status: 'voting' });
+    db.ref(`games/${ROOM}`).update({ status: 'voting' });
     return;
   }
 
@@ -440,7 +426,6 @@ function showGalleryScreen(game) {
   let idx = 0;
   function revealNext() {
     if (idx >= photos.length) {
-      // Show all at once
       showAllPhotos(photos);
       return;
     }
@@ -450,7 +435,6 @@ function showGalleryScreen(game) {
     document.getElementById('reveal-lbl').textContent = photo.label;
     document.getElementById('reveal-nav').textContent = `Photo ${idx+1} of ${photos.length}`;
 
-    // Animate out
     stage.style.opacity='0'; stage.style.transform='scale(0.88)';
     setTimeout(() => {
       content.innerHTML = photo.photoURL
@@ -477,7 +461,7 @@ function showAllPhotos(photos) {
     </div>
   `).join('');
   setTimeout(() => {
-    update(ref(db, `games/${ROOM}`), { status: 'voting', voteStart: Date.now() });
+    db.ref(`games/${ROOM}`).update({ status: 'voting', voteStart: Date.now() });
     galleryRunning = false;
   }, 4000);
 }
@@ -502,8 +486,7 @@ function showVotingScreen(game) {
   document.getElementById('vote-timer-num').textContent = vSecs;
 
   voteTimerInterval = setInterval(() => {
-    // Live update vote bars from Firebase
-    const currentSubs = gameData?.submissions || {};
+    const currentSubs = gameData ? (gameData.submissions || {}) : {};
     const updated = Object.entries(currentSubs).map(([id,s],i) => ({
       id, label: String.fromCharCode(65+i), ...s
     }));
@@ -543,21 +526,20 @@ function renderVoteGrid(photos) {
   }
 }
 
-// ── AWARD POINTS & RESULTS ──
+// ── AWARD POINTS ──
 async function awardPoints(game) {
   voteScreenShown = false;
   const subs = game.submissions || {};
   const players = game.players || {};
   const updates = {};
 
-  // Add votes to player scores
   Object.entries(subs).forEach(([playerId, sub]) => {
-    const currentScore = players[playerId]?.score || 0;
+    const currentScore = players[playerId] ? (players[playerId].score || 0) : 0;
     updates[`games/${ROOM}/players/${playerId}/score`] = currentScore + (sub.votes || 0);
   });
 
-  await update(ref(db), updates);
-  await update(ref(db, `games/${ROOM}`), { status: 'results' });
+  await db.ref().update(updates);
+  await db.ref(`games/${ROOM}`).update({ status: 'results' });
 }
 
 // ── RESULTS ──
@@ -572,7 +554,7 @@ function showResultsScreen(game) {
     const wp = document.getElementById('winner-photo');
     wp.innerHTML = winner.photoURL ? `<img src="${winner.photoURL}" alt="">` : '<div style="font-size:60px;">📷</div>';
     document.getElementById('winner-name').textContent = winner.playerName || '?';
-    document.getElementById('winner-votes').textContent = `${winner.votes||0} vote${(winner.votes||0)!==1?'s':''} · "${game.currentPrompt}"`;
+    document.getElementById('winner-votes-text').textContent = `${winner.votes||0} vote${(winner.votes||0)!==1?'s':''} · "${game.currentPrompt}"`;
   }
 
   document.getElementById('results-round-label').textContent = `Round ${game.round} Results`;
@@ -584,7 +566,6 @@ function showResultsScreen(game) {
     </div>
   `).join('');
 
-  // Show/hide next vs finish button
   const nextBtn = document.getElementById('next-btn');
   if ((game.round||1) >= (game.totalRounds||TOTAL_ROUNDS)) {
     nextBtn.textContent = 'See Final Results →';
@@ -601,18 +582,16 @@ window.advanceRound = async function() {
   const nextRound = (gameData.round||1) + 1;
 
   if (nextRound > (gameData.totalRounds||TOTAL_ROUNDS)) {
-    await update(ref(db, `games/${ROOM}`), { status: 'finished' });
+    await db.ref(`games/${ROOM}`).update({ status: 'finished' });
     return;
   }
 
-  // Pick next prompt
   const prompt = getPrompt();
 
-  // Clear submissions and votes
-  await set(ref(db, `games/${ROOM}/submissions`), null);
-  await set(ref(db, `games/${ROOM}/votes`), null);
+  await db.ref(`games/${ROOM}/submissions`).set(null);
+  await db.ref(`games/${ROOM}/votes`).set(null);
 
-  await update(ref(db, `games/${ROOM}`), {
+  await db.ref(`games/${ROOM}`).update({
     status: 'playing',
     round: nextRound,
     currentPrompt: prompt,
@@ -636,8 +615,8 @@ function showFinalScreen(game) {
     .sort((a,b)=>(b.score||0)-(a.score||0));
 
   const winner = lb[0];
-  document.getElementById('final-winner-name').textContent = winner?.name || '?';
-  document.getElementById('final-winner-sub').textContent = `with ${winner?.score||0} point${(winner?.score||0)!==1?'s':''}`;
+  document.getElementById('final-winner-name').textContent = winner ? winner.name : '?';
+  document.getElementById('final-winner-sub').textContent = `with ${winner ? winner.score||0 : 0} point${(winner && winner.score!==1)?'s':''}`;
   document.getElementById('final-lb').innerHTML = lb.map((p,i) => `
     <div class="final-row ${i===0?'first':''}">
       <div class="final-rank ${i===0?'gold':''}">${i+1}</div>
@@ -651,13 +630,12 @@ function showFinalScreen(game) {
 
 // ── PLAY AGAIN ──
 window.playAgain = async function() {
-  // Reset game to lobby
-  const players = gameData?.players || {};
+  const players = gameData ? (gameData.players || {}) : {};
   const resetPlayers = {};
   Object.entries(players).forEach(([id,p]) => {
     resetPlayers[id] = {...p, score:0};
   });
-  await update(ref(db, `games/${ROOM}`), {
+  await db.ref(`games/${ROOM}`).update({
     status: 'lobby', round: 0,
     currentPrompt: null, submissions: null, votes: null,
     players: resetPlayers
@@ -665,7 +643,7 @@ window.playAgain = async function() {
   window.location.href = `/?room=${ROOM}`;
 };
 
-// Unlock audio on first click (browser policy)
+// Unlock audio on first click
 document.addEventListener('click', () => ensureAudio(), {once:true});
 </script>
 </body>
