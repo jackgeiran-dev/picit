@@ -313,6 +313,8 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const COLORS = ['#00C9B1','#FF6B9D','#FFD93D','#6BCB77','#4D96FF','#FF9F43','#A29BFE','#FD79A8'];
 
+let currentRoomCode = null;
+
 function genRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
@@ -330,9 +332,6 @@ function makeQR(text) {
   new QRCode(document.getElementById('qr-canvas'), { text, width:140, height:140, colorDark:'#000', colorLight:'#fff', correctLevel: QRCode.CorrectLevel.M });
 }
 
-let currentRoomCode = null;
-let playersListener = null;
-
 window.goTo = function(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -344,31 +343,39 @@ window.createGame = async function() {
   try {
     const code = genRoomCode();
     currentRoomCode = code;
-    await set(ref(db, `games/${code}`), { status: 'lobby', round: 0, totalRounds: 10, createdAt: serverTimestamp(), currentPrompt: null });
+
+    await set(ref(db, `games/${code}`), {
+      status: 'lobby',
+      round: 0,
+      totalRounds: 10,
+      createdAt: serverTimestamp(),
+      currentPrompt: null
+    });
+
     document.getElementById('room-code-tv').textContent = code;
     makeQR(`https://picit.tv/join?room=${code}`);
-    listenForPlayers(code);
     goTo('screen-lobby');
     statusEl.textContent = '';
+
+    // Start listening AFTER game is created
+    onValue(ref(db, `games/${code}/players`), (snapshot) => {
+      const players = [];
+      snapshot.forEach(child => players.push({ id: child.key, ...child.val() }));
+      renderPlayers(players);
+    });
+
   } catch (err) {
     console.error(err);
     statusEl.textContent = 'Error creating game. Check your connection.';
-    statusEl.className = 'status-msg error';
   }
 };
 
-function listenForPlayers(code) {
-  onValue(ref(db, `games/${code}/players`), (snapshot) => {
-    const players = [];
-    snapshot.forEach(child => players.push({ id: child.key, ...child.val() }));
-    renderPlayers(players);
-  });
-}
 function renderPlayers(players) {
   const list = document.getElementById('player-list');
   const startBtn = document.getElementById('start-btn');
   const startNote = document.getElementById('start-note');
   document.getElementById('player-count').textContent = players.length;
+
   if (players.length === 0) {
     list.innerHTML = '<div class="waiting-slot">Waiting for players…</div>';
   } else {
@@ -380,12 +387,17 @@ function renderPlayers(players) {
       </div>`).join('');
     if (players.length < 8) list.innerHTML += '<div class="waiting-slot">Waiting for more players…</div>';
   }
+
   if (players.length >= 2) {
-    startBtn.disabled = false; startBtn.style.opacity = '1'; startBtn.style.cursor = 'pointer';
+    startBtn.disabled = false;
+    startBtn.style.opacity = '1';
+    startBtn.style.cursor = 'pointer';
     startNote.textContent = `${players.length} players ready — let's go!`;
     startNote.style.color = 'var(--teal)';
   } else {
-    startBtn.disabled = true; startBtn.style.opacity = '0.35'; startBtn.style.cursor = 'not-allowed';
+    startBtn.disabled = true;
+    startBtn.style.opacity = '0.35';
+    startBtn.style.cursor = 'not-allowed';
     startNote.textContent = 'Need at least 2 players to start';
     startNote.style.color = 'var(--text-muted)';
   }
