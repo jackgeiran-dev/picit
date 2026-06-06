@@ -332,13 +332,14 @@ async function createGame() {
     goTo('screen-lobby');
     statusEl.textContent = '';
 
-    // Listen for players
-    db.ref(`games/${code}/players`).on('value', (snapshot) => {
+ // Listen for players
+    window._playersRef = db.ref(`games/${code}/players`);
+    window._playersRef.on('value', (snapshot) => {
       const players = [];
       snapshot.forEach(child => players.push({ id: child.key, ...child.val() }));
       renderPlayers(players);
     });
-
+    
   } catch(err) {
     console.error(err);
     statusEl.textContent = 'Error creating game.';
@@ -358,6 +359,10 @@ document.getElementById('start-btn').addEventListener('click', async () => {
   } catch(err) {
     document.getElementById('lobby-status').textContent = 'Error starting game.';
   }
+});
+  // Keep listener alive
+window.addEventListener('beforeunload', () => {
+  if (window._playersRef) window._playersRef.off();
 });
 </script>
 </body>
