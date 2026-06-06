@@ -358,14 +358,12 @@ window.createGame = async function() {
 };
 
 function listenForPlayers(code) {
-  if (playersListener) playersListener();
   onValue(ref(db, `games/${code}/players`), (snapshot) => {
     const players = [];
     snapshot.forEach(child => players.push({ id: child.key, ...child.val() }));
     renderPlayers(players);
   });
 }
-
 function renderPlayers(players) {
   const list = document.getElementById('player-list');
   const startBtn = document.getElementById('start-btn');
