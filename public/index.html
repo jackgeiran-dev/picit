@@ -359,7 +359,7 @@ window.createGame = async function() {
 
 function listenForPlayers(code) {
   if (playersListener) playersListener();
-  playersListener = onValue(ref(db, `games/${code}/players`), (snapshot) => {
+  onValue(ref(db, `games/${code}/players`), (snapshot) => {
     const players = [];
     snapshot.forEach(child => players.push({ id: child.key, ...child.val() }));
     renderPlayers(players);
