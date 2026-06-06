@@ -26,13 +26,13 @@
     background: radial-gradient(ellipse at 20% 30%, rgba(0,201,177,0.06) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 70%, rgba(0,201,177,0.04) 0%, transparent 50%);
   }
-  .screen { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 60px 30px; z-index:1; opacity:0; pointer-events:none; transition:[...]
+  .screen { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 60px 30px; z-index:1; opacity:0; pointer-events:none; transition: opacity 0.3s ease; }
   .screen.active { opacity:1; pointer-events:all; }
   .logo { font-family:'Lilita One',cursive; font-size:96px; color:var(--teal); text-shadow:0 0 60px var(--teal-glow); letter-spacing:-2px; line-height:1; }
   .tagline { font-size:20px; font-weight:700; letter-spacing:6px; color:var(--text-muted); text-transform:uppercase; margin-top:6px; margin-bottom:12px; }
   .pika-scene { width:100%; max-width:860px; margin:0 auto; }
   .btn-row { display:flex; gap:28px; margin-top:16px; }
-  .btn { font-family:'Nunito',sans-serif; font-size:28px; font-weight:900; padding:22px 64px; border-radius:100px; border:none; cursor:pointer; letter-spacing:1px; transition:transform 0.15s, box-[...]
+  .btn { font-family:'Nunito',sans-serif; font-size:28px; font-weight:900; padding:22px 64px; border-radius:100px; border:none; cursor:pointer; letter-spacing:1px; transition: transform 0.15s, box-shadow 0.15s; }
   .btn:hover { transform:scale(1.05); }
   .btn:active { transform:scale(0.97); }
   .btn-primary { background:var(--teal); color:var(--black); box-shadow:0 0 40px var(--teal-glow), 0 8px 24px rgba(0,0,0,0.4); }
@@ -47,7 +47,7 @@
   .htp-title { font-family:'Lilita One',cursive; font-size:52px; color:var(--teal); text-align:center; margin-bottom:36px; }
   .htp-steps { display:flex; flex-direction:column; gap:18px; margin-bottom:40px; }
   .htp-step { display:flex; align-items:center; gap:20px; background:var(--card2); border-radius:16px; padding:18px 24px; }
-  .step-num { width:52px; height:52px; border-radius:50%; background:var(--teal); color:var(--black); font-family:'Lilita One',cursive; font-size:26px; display:flex; align-items:center; justify-co[...]
+  .step-num { width:52px; height:52px; border-radius:50%; background:var(--teal); color:var(--black); font-family:'Lilita One',cursive; font-size:26px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .step-text { font-size:20px; font-weight:700; line-height:1.3; }
   .step-text small { display:block; font-size:15px; font-weight:600; color:var(--text-muted); margin-top:3px; }
   .htp-btns { display:flex; gap:20px; justify-content:center; }
@@ -188,9 +188,9 @@
   <div class="htp-box">
     <div class="htp-title">How to Play</div>
     <div class="htp-steps">
-      <div class="htp-step"><div class="step-num">1</div><div class="step-text">Grab your phone and go to <span style="color:var(--teal)">picit.tv</span><small>Enter the room code on the TV and t[...]
-      <div class="htp-step"><div class="step-num">2</div><div class="step-text">A prompt appears each round — like "Pizza" or "Something adorable"<small>Pick the best photo from your camera rol[...]
-      <div class="htp-step"><div class="step-num">3</div><div class="step-text">All photos are revealed on the TV one by one — no names yet!<small>Then everyone votes for their favorite on thei[...]
+      <div class="htp-step"><div class="step-num">1</div><div class="step-text">Grab your phone and go to <span style="color:var(--teal)">picit.tv</span><small>Enter the room code on the TV and then select your name</small></div></div>
+      <div class="htp-step"><div class="step-num">2</div><div class="step-text">A prompt appears each round — like "Pizza" or "Something adorable"<small>Pick the best photo from your camera roll</small></div></div>
+      <div class="htp-step"><div class="step-num">3</div><div class="step-text">All photos are revealed on the TV one by one — no names yet!<small>Then everyone votes for their favorite on their phone</small></div></div>
       <div class="htp-step"><div class="step-num">4</div><div class="step-text">Most votes after 10 rounds wins!<small>You can't vote for your own photo — choose wisely</small></div></div>
     </div>
     <div class="htp-btns">
@@ -334,7 +334,7 @@ async function createGame() {
     goTo('screen-lobby');
     statusEl.textContent = '';
 
-    // Setup listener for players - this will trigger immediately and on every update
+    // Setup listener for players
     setupPlayersListener(code);
 
   } catch(err) {
@@ -352,7 +352,6 @@ function setupPlayersListener(code) {
   
   playersListenerActive = true;
   
-  // Use 'child_added' and 'child_changed' for real-time updates (more reliable than 'value')
   db.ref(`games/${code}/players`).on('value', (snapshot) => {
     console.log('Players updated:', snapshot.numChildren());
     const players = [];
