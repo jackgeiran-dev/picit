@@ -270,38 +270,48 @@ function makeQR(text) {
 }
 
 function renderPlayers(players) {
-  const list = document.getElementById('player-list');
-  const startBtn = document.getElementById('start-btn');
-  const startNote = document.getElementById('start-note');
-  document.getElementById('player-count').textContent = players.length;
+  try {
+    const list = document.getElementById('player-list');
+    const startBtn = document.getElementById('start-btn');
+    const startNote = document.getElementById('start-note');
+    document.getElementById('player-count').textContent = players.length;
 
-  if (players.length === 0) {
-    list.innerHTML = '<div class="waiting-slot">Waiting for players…</div>';
-  } else {
-    list.innerHTML = players.map((p, i) => `
-      <div class="player-row">
+    list.innerHTML = '';
+    players.forEach((p, i) => {
+      const row = document.createElement('div');
+      row.className = 'player-row';
+      row.innerHTML = `
         <div class="player-avatar" style="background:${COLORS[i % COLORS.length]}">${p.name[0].toUpperCase()}</div>
         <span class="player-name">${p.name}</span>
         ${i === 0 ? '<span class="host-badge">Host</span>' : ''}
-      </div>`).join('');
-    if (players.length < 8) list.innerHTML += '<div class="waiting-slot">Waiting for more players…</div>';
-  }
+      `;
+      list.appendChild(row);
+    });
 
-  if (players.length >= 2) {
-    startBtn.disabled = false;
-    startBtn.style.opacity = '1';
-    startBtn.style.cursor = 'pointer';
-    startNote.textContent = `${players.length} players ready — let's go!`;
-    startNote.style.color = 'var(--teal)';
-  } else {
-    startBtn.disabled = true;
-    startBtn.style.opacity = '0.35';
-    startBtn.style.cursor = 'not-allowed';
-    startNote.textContent = 'Need at least 2 players to start';
-    startNote.style.color = 'var(--text-muted)';
+    if (players.length < 8) {
+      const slot = document.createElement('div');
+      slot.className = 'waiting-slot';
+      slot.textContent = 'Waiting for more players…';
+      list.appendChild(slot);
+    }
+
+    if (players.length >= 2) {
+      startBtn.disabled = false;
+      startBtn.style.opacity = '1';
+      startBtn.style.cursor = 'pointer';
+      startNote.textContent = `${players.length} players ready — let's go!`;
+      startNote.style.color = 'var(--teal)';
+    } else {
+      startBtn.disabled = true;
+      startBtn.style.opacity = '0.35';
+      startBtn.style.cursor = 'not-allowed';
+      startNote.textContent = 'Need at least 2 players to start';
+      startNote.style.color = 'var(--text-muted)';
+    }
+  } catch(e) {
+    console.error('renderPlayers error:', e);
   }
 }
-
 async function createGame() {
   const statusEl = document.getElementById('home-status');
   statusEl.textContent = 'Creating game…';
