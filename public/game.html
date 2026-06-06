@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Pic It — Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal:#00C9B1; --teal-glow:rgba(0,201,177,0.28);
+    --black:#080C0B; --card:#111816; --card2:#1A2420;
+    --text:#FFFFFF; --muted:rgba(255,255,255,0.5);
+    --border:rgba(0,201,177,0.18); --warn:#FF6B6B;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--black);font-family:'Nunito',sans-serif;color:var(--text);}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% -10%,rgba(0,201,177,0.06) 0%,transparent 55%);}
+
+  .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 60px 60px;z-index:1;opacity:0;pointer-events:none;transition:opacity 0.5s ease;}
+  .screen.active{opacity:1;pointer-events:all;}
+
+  .tv-header{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:24px 56px;z-index:10;}
+  .tv-logo{font-family:'Lilita One',cursive;font-size:34px;color:var(--teal);letter-spacing:-1px;}
+  .tv-round{font-size:17px;font-weight:800;color:var(--muted);letter-spacing:3px;text-transform:uppercase;}
+
+  /* ── PROMPT ── */
+  #screen-prompt{text-align:center;}
+  .prompt-eyebrow{font-size:18px;font-weight:800;letter-spacing:5px;color:var(--muted);text-transform:uppercase;margin-bottom:20px;}
+  .prompt-big{font-family:'Lilita One',cursive;font-size:108px;line-height:1.05;color:var(--text);margin-bottom:48px;max-width:1400px;animation:promptIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both;}
+  @keyframes promptIn{from{opacity:0;transform:scale(0.82) translateY(24px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+  .timer-wrap{position:relative;width:180px;height:180px;margin:0 auto;}
+  .timer-wrap svg{transform:rotate(-90deg);}
+  .timer-inner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+  .timer-big{font-family:'Lilita One',cursive;font-size:70px;color:var(--teal);line-height:1;transition:color 0.4s;}
+  .timer-lbl{font-size:13px;font-weight:800;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-top:4px;}
+
+  .sub-bar{margin-top:44px;display:flex;align-items:center;gap:14px;font-size:19px;font-weight:800;color:var(--muted);}
+  .sub-dots{display:flex;gap:9px;}
+  .sub-dot{width:15px;height:15px;border-radius:50%;background:rgba(255,255,255,0.12);transition:background 0.3s,transform 0.3s;}
+  .sub-dot.done{background:var(--teal);transform:scale(1.25);}
+
+  @keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+  .pulse-anim{animation:timerPulse 0.5s ease-in-out infinite;}
+
+  /* ── GALLERY ── */
+  #screen-gallery{text-align:center;}
+  .gallery-eyebrow{font-size:17px;font-weight:800;letter-spacing:5px;color:var(--muted);text-transform:uppercase;margin-bottom:28px;}
+  .reveal-stage{width:500px;height:500px;background:var(--card);border:3px solid var(--teal);border-radius:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 70px var(--teal-glow);position:relative;overflow:hidden;margin:0 auto 28px;}
+  .reveal-img{width:100%;height:100%;object-fit:cover;animation:revealPop 0.55s cubic-bezier(0.34,1.56,0.64,1) both;}
+  .reveal-placeholder{font-size:160px;animation:revealPop 0.55s cubic-bezier(0.34,1.56,0.64,1) both;}
+  @keyframes revealPop{from{opacity:0;transform:scale(0.45) rotate(-6deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+  .reveal-lbl{position:absolute;top:16px;left:16px;width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,0.8);border:3px solid var(--teal);display:flex;align-items:center;justify-content:center;font-family:'Lilita One',cursive;font-size:26px;color:var(--teal);}
+  .reveal-nav{font-size:20px;font-weight:800;color:var(--muted);}
+
+  .gallery-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px;width:100%;max-width:1400px;animation:fadeIn 0.5s ease both;}
+  .grid-card{aspect-ratio:1;background:var(--card);border-radius:18px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+  .grid-card img{width:100%;height:100%;object-fit:cover;}
+  .grid-lbl{position:absolute;top:9px;left:9px;background:rgba(0,0,0,0.8);border-radius:7px;padding:3px 10px;font-family:'Lilita One',cursive;font-size:18px;color:var(--teal);}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+  /* ── VOTING ── */
+  #screen-voting{text-align:center;}
+  .vote-eyebrow{font-size:17px;font-weight:800;letter-spacing:4px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+  .vote-prompt{font-family:'Lilita One',cursive;font-size:48px;color:var(--teal);margin-bottom:36px;}
+  .vote-grid{display:flex;gap:20px;width:100%;max-width:1400px;justify-content:center;flex-wrap:wrap;}
+  .vote-card{flex:1;min-width:160px;max-width:260px;background:var(--card);border:2px solid var(--border);border-radius:18px;padding:18px;text-align:center;transition:border-color 0.3s,box-shadow 0.3s;}
+  .vote-card.leading{border-color:var(--teal);box-shadow:0 0 30px var(--teal-glow);}
+  .vote-photo{aspect-ratio:1;border-radius:10px;background:var(--card2);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:12px;}
+  .vote-photo img{width:100%;height:100%;object-fit:cover;}
+  .vote-lbl{font-family:'Lilita One',cursive;font-size:20px;color:var(--teal);margin-bottom:6px;}
+  .vote-bar-wrap{background:rgba(255,255,255,0.06);border-radius:100px;height:10px;margin-bottom:8px;overflow:hidden;}
+  .vote-bar{height:100%;background:var(--teal);border-radius:100px;width:0%;transition:width 0.7s cubic-bezier(0.34,1.56,0.64,1);}
+  .vote-count{font-size:26px;font-weight:900;}
+  .vote-timer{font-size:18px;font-weight:800;color:var(--muted);margin-top:28px;}
+
+  /* ── RESULTS ── */
+  #screen-results{text-align:center;}
+  .results-eyebrow{font-size:16px;font-weight:800;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+  .winner-card{display:flex;align-items:center;gap:32px;background:var(--card);border:2px solid var(--teal);border-radius:28px;padding:28px 44px;box-shadow:0 0 60px var(--teal-glow);margin:14px auto 28px;max-width:780px;animation:fadeIn 0.6s ease both;}
+  .winner-photo{width:150px;height:150px;border-radius:14px;background:var(--card2);border:3px solid var(--teal);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .winner-photo img{width:100%;height:100%;object-fit:cover;}
+  .winner-info{text-align:left;}
+  .winner-crown{font-size:32px;margin-bottom:4px;}
+  .winner-name{font-family:'Lilita One',cursive;font-size:52px;color:var(--teal);line-height:1;}
+  .winner-votes{font-size:20px;font-weight:700;color:var(--muted);margin-top:6px;}
+  .results-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;width:100%;max-width:1400px;}
+  .result-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px;text-align:center;flex:1;min-width:130px;max-width:200px;}
+  .result-photo{aspect-ratio:1;border-radius:9px;background:var(--card2);overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:9px;}
+  .result-photo img{width:100%;height:100%;object-fit:cover;}
+  .result-player{font-size:15px;font-weight:800;margin-bottom:3px;}
+  .result-votes{font-size:13px;font-weight:700;color:var(--teal);}
+  .next-btn{margin-top:32px;background:var(--teal);color:var(--black);border:none;border-radius:100px;padding:18px 56px;font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;cursor:pointer;box-shadow:0 0 40px var(--teal-glow);letter-spacing:1px;transition:transform 0.15s;}
+  .next-btn:hover{transform:scale(1.04);}
+
+  /* ── FINAL ── */
+  #screen-final{text-align:center;}
+  .final-confetti{font-size:48px;margin-bottom:12px;animation:bounce 0.8s ease-in-out infinite alternate;}
+  @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-16px)}}
+  .final-title{font-family:'Lilita One',cursive;font-size:80px;color:var(--teal);margin-bottom:8px;}
+  .final-sub{font-size:22px;font-weight:700;color:var(--muted);margin-bottom:40px;}
+  .final-lb{display:flex;flex-direction:column;gap:12px;width:100%;max-width:640px;margin:0 auto;}
+  .final-row{display:flex;align-items:center;gap:18px;background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px 24px;}
+  .final-row.first{border-color:var(--teal);box-shadow:0 0 30px var(--teal-glow);}
+  .final-rank{font-family:'Lilita One',cursive;font-size:28px;color:var(--muted);width:32px;}
+  .final-rank.gold{color:var(--teal);}
+  .final-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:var(--black);flex-shrink:0;}
+  .final-name{font-size:22px;font-weight:800;}
+  .final-score{margin-left:auto;font-size:24px;font-weight:900;}
+  .play-again-btn{margin-top:40px;background:var(--teal);color:var(--black);border:none;border-radius:100px;padding:20px 64px;font-family:'Nunito',sans-serif;font-size:24px;font-weight:900;cursor:pointer;box-shadow:0 0 40px var(--teal-glow);letter-spacing:1px;transition:transform 0.15s;}
+  .play-again-btn:hover{transform:scale(1.04);}
+</style>
+</head>
+<body>
+
+<div class="tv-header">
+  <div class="tv-logo">PIC IT</div>
+  <div class="tv-round" id="round-label">Round 1 of 10</div>
+</div>
+
+<!-- ══════ PROMPT ══════ -->
+<div class="screen active" id="screen-prompt">
+  <div class="prompt-eyebrow">This round's prompt</div>
+  <div class="prompt-big" id="prompt-text">Loading…</div>
+  <div class="timer-wrap">
+    <svg width="180" height="180" viewBox="0 0 180 180">
+      <circle cx="90" cy="90" r="78" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="10"/>
+      <circle id="tv-arc" cx="90" cy="90" r="78" fill="none" stroke="var(--teal)"
+        stroke-width="10" stroke-dasharray="490.09" stroke-dashoffset="0"
+        stroke-linecap="round" style="transition:stroke-dashoffset 1s linear,stroke 0.5s;"/>
+    </svg>
+    <div class="timer-inner">
+      <div class="timer-big" id="tv-timer">60</div>
+      <div class="timer-lbl">seconds</div>
+    </div>
+  </div>
+  <div class="sub-bar">
+    <span>Submitted:</span>
+    <div class="sub-dots" id="sub-dots"></div>
+    <span id="sub-count">0 of 0</span>
+  </div>
+</div>
+
+<!-- ══════ GALLERY ══════ -->
+<div class="screen" id="screen-gallery">
+  <div class="gallery-eyebrow" id="gallery-label">Revealing photos…</div>
+  <div id="reveal-wrap">
+    <div class="reveal-stage" id="reveal-stage">
+      <div class="reveal-lbl" id="reveal-lbl">A</div>
+      <div id="reveal-content"></div>
+    </div>
+    <div class="reveal-nav" id="reveal-nav">Photo 1 of …</div>
+  </div>
+  <div class="gallery-grid" id="gallery-grid" style="display:none;"></div>
+</div>
+
+<!-- ══════ VOTING ══════ -->
+<div class="screen" id="screen-voting">
+  <div class="vote-eyebrow">Vote on your phone!</div>
+  <div class="vote-prompt" id="vote-prompt-text">"…"</div>
+  <div class="vote-grid" id="vote-grid"></div>
+  <div class="vote-timer">⏱ <span id="vote-timer-num">30</span>s remaining</div>
+</div>
+
+<!-- ══════ RESULTS ══════ -->
+<div class="screen" id="screen-results">
+  <div class="results-eyebrow" id="results-round-label">Round 1 Results</div>
+  <div class="winner-card" id="winner-card">
+    <div class="winner-photo" id="winner-photo"></div>
+    <div class="winner-info">
+      <div class="winner-crown">🏆</div>
+      <div class="winner-name" id="winner-name">…</div>
+      <div class="winner-votes" id="winner-votes-text">… votes</div>
+    </div>
+  </div>
+  <div class="results-row" id="results-row"></div>
+  <button class="next-btn" id="next-btn" onclick="advanceRound()">Next Round →</button>
+</div>
+
+<!-- ══════ FINAL ══════ -->
+<div class="screen" id="screen-final">
+  <div class="final-confetti">🎉</div>
+  <div class="final-title" id="final-winner-name">Winner!</div>
+  <div class="final-sub" id="final-winner-sub">with 0 points</div>
+  <div class="final-lb" id="final-lb"></div>
+  <button class="play-again-btn" onclick="playAgain()">Play Again →</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, update, set, get, remove, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA9MXjistGBfnMBnLAkVYS3gSsX3LerPNA",
+  authDomain: "pic-it-bf268.firebaseapp.com",
+  databaseURL: "https://pic-it-bf268-default-rtdb.firebaseio.com",
+  projectId: "pic-it-bf268",
+  storageBucket: "pic-it-bf268.firebasestorage.app",
+  messagingSenderId: "992063984744",
+  appId: "1:992063984744:web:e3222850cae7f51d9a57dd"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── Get room code from URL ──
+const params = new URLSearchParams(window.location.search);
+const ROOM = params.get('room');
+if (!ROOM) { document.body.innerHTML = '<div style="color:white;text-align:center;padding:100px;font-family:Nunito,sans-serif;font-size:32px;">No room code found.<br><br><a href="/" style="color:#00C9B1">← Back to home</a></div>'; }
+
+const PROMPTS = [
+  'Search "pizza"','I don\'t know why I have this in my camera roll',
+  'I can smell this pic','Selfie!','Something adorable',
+  'Something I\'m proud of','Search "car"',
+  'This photo will be on the cover of my autobiography',
+  'Search "sunset"','Search "Birthday"','Screenshot',
+  'First photo on my phone','Last photo I took','New Year\'s Eve',
+  'Thanksgiving','Search "drink"','I don\'t remember this… obviously',
+  'My mom took this photo','This is what I think I look like',
+  'Search "Halloween"','Search "sunglasses"',
+  'I wish they were playing Pic It with us right now',
+  'Search "couch"','Dog or cat'
+];
+let usedPrompts = [];
+let timerInterval = null;
+let voteTimerInterval = null;
+let gameData = null;
+let timerStartTime = null;
+const TIMER_DURATION = 60;
+const VOTE_DURATION = 30;
+const TOTAL_ROUNDS = 10;
+
+// ── Screen nav ──
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ──────────────────────────────────────────
+// WEB AUDIO — BUILDS IN INTENSITY
+// ──────────────────────────────────────────
+let audioCtx = null;
+let masterGain = null;
+let beatScheduler = null;
+let nextBeatTime = 0;
+let melodyIdx = 0;
+let timerSecsLeft = TIMER_DURATION;
+
+function ensureAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+  masterGain.connect(audioCtx.destination);
+}
+
+function playKick(t) {
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.frequency.setValueAtTime(160,t); o.frequency.exponentialRampToValueAtTime(38,t+0.14);
+  g.gain.setValueAtTime(0.55,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.28);
+  o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+0.3);
+}
+function playSnare(t) {
+  const buf = audioCtx.createBuffer(1, audioCtx.sampleRate*0.14, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
+  const s=audioCtx.createBufferSource(), g=audioCtx.createGain(), f=audioCtx.createBiquadFilter();
+  f.type='bandpass'; f.frequency.value=2200; f.Q.value=0.5;
+  g.gain.setValueAtTime(0.38,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.14);
+  s.buffer=buf; s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t+0.18);
+}
+function playHat(t,open=false) {
+  const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*0.045,audioCtx.sampleRate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.5);
+  const s=audioCtx.createBufferSource(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();
+  f.type='highpass'; f.frequency.value=9000;
+  g.gain.setValueAtTime(open?0.14:0.07,t); g.gain.exponentialRampToValueAtTime(0.001,t+(open?0.09:0.03));
+  s.buffer=buf; s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t+0.12);
+}
+function playNote(freq,type,t,dur,gain=0.08) {
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type=type; o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(gain,t+0.015);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  o.connect(g); g.connect(masterGain); o.start(t); o.stop(t+dur+0.05);
+}
+
+const MELODY=[261.63,293.66,329.63,392.00,440.00,523.25,392.00,329.63];
+const BASS=[130.81,130.81,146.83,164.81,130.81,146.83,164.81,130.81];
+
+function scheduleBar(t, bpm, intensity) {
+  const beat=60/bpm, eighth=beat/2;
+  playKick(t); playKick(t+beat*2);
+  playSnare(t+beat); playSnare(t+beat*3);
+  for(let i=0;i<8;i++) playHat(t+i*eighth, i%4===2);
+  for(let i=0;i<4;i++) playNote(BASS[(melodyIdx+i)%BASS.length],'sawtooth',t+i*beat,beat*0.72,0.07+intensity*0.055);
+  if(intensity>0.28) for(let i=0;i<4;i++) playNote(MELODY[(melodyIdx+i)%MELODY.length]*2,'triangle',t+i*beat+eighth,eighth*0.75,0.04+intensity*0.038);
+  if(intensity>0.65){ playNote(523.25,'sine',t,beat*4,0.035); playNote(659.25,'sine',t,beat*4,0.025); }
+  melodyIdx=(melodyIdx+4)%MELODY.length;
+}
+
+function startMusic() {
+  ensureAudio();
+  stopMusic();
+  melodyIdx=0;
+  nextBeatTime=audioCtx.currentTime+0.12;
+  beatScheduler=setInterval(()=>{
+    const elapsed=TIMER_DURATION-timerSecsLeft;
+    const progress=Math.min(1, elapsed/TIMER_DURATION);
+    const intensity=Math.min(1, progress*1.35);
+    const bpm=100+progress*46;
+    const barLen=(60/bpm)*4;
+    while(nextBeatTime < audioCtx.currentTime+0.55){
+      scheduleBar(nextBeatTime,bpm,intensity);
+      nextBeatTime+=barLen;
+    }
+    masterGain.gain.setValueAtTime(Math.min(0.33, 0.14+intensity*0.19), audioCtx.currentTime);
+  },50);
+}
+
+function stopMusic() {
+  if(beatScheduler){clearInterval(beatScheduler);beatScheduler=null;}
+  if(masterGain){
+    masterGain.gain.setValueAtTime(masterGain.gain.value,audioCtx.currentTime);
+    masterGain.gain.linearRampToValueAtTime(0,audioCtx.currentTime+0.5);
+  }
+}
+
+// ──────────────────────────────────────────
+// GAME LOGIC
+// ──────────────────────────────────────────
+
+// ── Listen to game ──
+if (ROOM) {
+  onValue(ref(db, `games/${ROOM}`), (snap) => {
+    if (!snap.exists()) return;
+    gameData = snap.val();
+    syncGameState(gameData);
+  });
+}
+
+function syncGameState(game) {
+  document.getElementById('round-label').textContent = `Round ${game.round || 1} of ${game.totalRounds || TOTAL_ROUNDS}`;
+  if (game.status === 'playing') showPromptScreen(game);
+  if (game.status === 'gallery') showGalleryScreen(game);
+  if (game.status === 'voting') showVotingScreen(game);
+  if (game.status === 'results') showResultsScreen(game);
+  if (game.status === 'finished') showFinalScreen(game);
+}
+
+// ── PROMPT ──
+let lastPromptRound = -1;
+function showPromptScreen(game) {
+  if (game.round === lastPromptRound) return; // already showing this round
+  lastPromptRound = game.round;
+  clearInterval(timerInterval);
+  timerSecsLeft = TIMER_DURATION;
+  timerStartTime = game.timerStart || Date.now();
+
+  document.getElementById('prompt-text').textContent = game.currentPrompt || '…';
+  document.getElementById('tv-arc').style.stroke = 'var(--teal)';
+  document.getElementById('tv-timer').style.color = 'var(--teal)';
+  document.getElementById('tv-timer').classList.remove('pulse-anim');
+
+  // Build submission dots from players
+  const players = game.players || {};
+  const playerCount = Object.keys(players).length;
+  const subs = game.submissions || {};
+  const subCount = Object.keys(subs).length;
+  renderSubDots(playerCount, subCount);
+
+  goTo('screen-prompt');
+  startMusic();
+
+  timerInterval = setInterval(() => {
+    const now = Date.now();
+    const elapsed = Math.floor((now - timerStartTime) / 1000);
+    timerSecsLeft = Math.max(0, TIMER_DURATION - elapsed);
+
+    document.getElementById('tv-timer').textContent = timerSecsLeft;
+    document.getElementById('tv-arc').style.strokeDashoffset = 490.09 * (elapsed / TIMER_DURATION);
+
+    // Re-render sub dots
+    const currentSubs = gameData?.submissions || {};
+    renderSubDots(playerCount, Object.keys(currentSubs).length);
+
+    if (timerSecsLeft <= 10) {
+      document.getElementById('tv-arc').style.stroke = 'var(--warn)';
+      document.getElementById('tv-timer').style.color = 'var(--warn)';
+      document.getElementById('tv-timer').classList.add('pulse-anim');
+    }
+
+    if (timerSecsLeft <= 0) {
+      clearInterval(timerInterval);
+      stopMusic();
+      // Move to gallery
+      update(ref(db, `games/${ROOM}`), { status: 'gallery' });
+    }
+  }, 500);
+}
+
+function renderSubDots(total, done) {
+  const wrap = document.getElementById('sub-dots');
+  wrap.innerHTML = Array.from({length: total}, (_,i) =>
+    `<div class="sub-dot ${i < done ? 'done' : ''}"></div>`
+  ).join('');
+  document.getElementById('sub-count').textContent = `${done} of ${total}`;
+  // If all submitted early — move to gallery
+  if (done >= total && total > 0 && gameData?.status === 'playing') {
+    clearInterval(timerInterval);
+    stopMusic();
+    setTimeout(() => update(ref(db, `games/${ROOM}`), { status: 'gallery' }), 1200);
+  }
+}
+
+// ── GALLERY ──
+let galleryRunning = false;
+function showGalleryScreen(game) {
+  if (galleryRunning) return;
+  galleryRunning = true;
+  clearInterval(timerInterval);
+
+  const subs = game.submissions || {};
+  const photos = Object.entries(subs).map(([id,s],i) => ({
+    id, label: String.fromCharCode(65+i), ...s
+  }));
+
+  if (photos.length === 0) {
+    update(ref(db, `games/${ROOM}`), { status: 'voting' });
+    return;
+  }
+
+  document.getElementById('reveal-wrap').style.display = 'block';
+  document.getElementById('gallery-grid').style.display = 'none';
+  document.getElementById('gallery-label').textContent = 'Revealing photos…';
+  goTo('screen-gallery');
+
+  let idx = 0;
+  function revealNext() {
+    if (idx >= photos.length) {
+      // Show all at once
+      showAllPhotos(photos);
+      return;
+    }
+    const photo = photos[idx];
+    const stage = document.getElementById('reveal-stage');
+    const content = document.getElementById('reveal-content');
+    document.getElementById('reveal-lbl').textContent = photo.label;
+    document.getElementById('reveal-nav').textContent = `Photo ${idx+1} of ${photos.length}`;
+
+    // Animate out
+    stage.style.opacity='0'; stage.style.transform='scale(0.88)';
+    setTimeout(() => {
+      content.innerHTML = photo.photoURL
+        ? `<img class="reveal-img" src="${photo.photoURL}" alt="">`
+        : `<div class="reveal-placeholder">📷</div>`;
+      stage.style.transition='opacity 0.45s ease,transform 0.45s cubic-bezier(0.34,1.56,0.64,1)';
+      stage.style.opacity='1'; stage.style.transform='scale(1)';
+      idx++;
+      setTimeout(revealNext, 2400);
+    }, 320);
+  }
+  revealNext();
+}
+
+function showAllPhotos(photos) {
+  document.getElementById('reveal-wrap').style.display = 'none';
+  document.getElementById('gallery-label').textContent = 'All photos — vote on your phone!';
+  const grid = document.getElementById('gallery-grid');
+  grid.style.display = 'grid';
+  grid.innerHTML = photos.map(p => `
+    <div class="grid-card">
+      <div class="grid-lbl">${p.label}</div>
+      ${p.photoURL ? `<img src="${p.photoURL}" alt="">` : '<div style="font-size:56px;">📷</div>'}
+    </div>
+  `).join('');
+  setTimeout(() => {
+    update(ref(db, `games/${ROOM}`), { status: 'voting', voteStart: Date.now() });
+    galleryRunning = false;
+  }, 4000);
+}
+
+// ── VOTING ──
+let voteScreenShown = false;
+function showVotingScreen(game) {
+  if (voteScreenShown) return;
+  voteScreenShown = true;
+  clearInterval(voteTimerInterval);
+
+  const subs = game.submissions || {};
+  const photos = Object.entries(subs).map(([id,s],i) => ({
+    id, label: String.fromCharCode(65+i), ...s
+  }));
+
+  document.getElementById('vote-prompt-text').textContent = `"${game.currentPrompt}"`;
+  renderVoteGrid(photos);
+  goTo('screen-voting');
+
+  let vSecs = VOTE_DURATION;
+  document.getElementById('vote-timer-num').textContent = vSecs;
+
+  voteTimerInterval = setInterval(() => {
+    // Live update vote bars from Firebase
+    const currentSubs = gameData?.submissions || {};
+    const updated = Object.entries(currentSubs).map(([id,s],i) => ({
+      id, label: String.fromCharCode(65+i), ...s
+    }));
+    renderVoteGrid(updated);
+
+    vSecs--;
+    document.getElementById('vote-timer-num').textContent = Math.max(0,vSecs);
+    if (vSecs <= 0) {
+      clearInterval(voteTimerInterval);
+      awardPoints(game);
+    }
+  }, 1000);
+}
+
+function renderVoteGrid(photos) {
+  const max = Math.max(...photos.map(p => p.votes||0), 1);
+  const grid = document.getElementById('vote-grid');
+  if (grid.children.length !== photos.length) {
+    grid.innerHTML = photos.map(p => `
+      <div class="vote-card" id="vc-${p.id}">
+        <div class="vote-photo">${p.photoURL ? `<img src="${p.photoURL}" alt="">` : '<div style="font-size:52px;">📷</div>'}</div>
+        <div class="vote-lbl">${p.label}</div>
+        <div class="vote-bar-wrap"><div class="vote-bar" id="vbar-${p.id}"></div></div>
+        <div class="vote-count" id="vcnt-${p.id}">${p.votes||0}</div>
+      </div>
+    `).join('');
+  } else {
+    photos.forEach(p => {
+      const bar = document.getElementById(`vbar-${p.id}`);
+      const cnt = document.getElementById(`vcnt-${p.id}`);
+      const card = document.getElementById(`vc-${p.id}`);
+      if (bar) bar.style.width = ((p.votes||0)/max*100)+'%';
+      if (cnt) cnt.textContent = p.votes||0;
+      const isLeading = (p.votes||0) === Math.max(...photos.map(x=>x.votes||0)) && (p.votes||0) > 0;
+      if (card) card.classList.toggle('leading', isLeading);
+    });
+  }
+}
+
+// ── AWARD POINTS & RESULTS ──
+async function awardPoints(game) {
+  voteScreenShown = false;
+  const subs = game.submissions || {};
+  const players = game.players || {};
+  const updates = {};
+
+  // Add votes to player scores
+  Object.entries(subs).forEach(([playerId, sub]) => {
+    const currentScore = players[playerId]?.score || 0;
+    updates[`games/${ROOM}/players/${playerId}/score`] = currentScore + (sub.votes || 0);
+  });
+
+  await update(ref(db), updates);
+  await update(ref(db, `games/${ROOM}`), { status: 'results' });
+}
+
+// ── RESULTS ──
+function showResultsScreen(game) {
+  const subs = game.submissions || {};
+  const photos = Object.entries(subs)
+    .map(([id,s]) => ({id,...s}))
+    .sort((a,b) => (b.votes||0)-(a.votes||0));
+
+  const winner = photos[0];
+  if (winner) {
+    const wp = document.getElementById('winner-photo');
+    wp.innerHTML = winner.photoURL ? `<img src="${winner.photoURL}" alt="">` : '<div style="font-size:60px;">📷</div>';
+    document.getElementById('winner-name').textContent = winner.playerName || '?';
+    document.getElementById('winner-votes').textContent = `${winner.votes||0} vote${(winner.votes||0)!==1?'s':''} · "${game.currentPrompt}"`;
+  }
+
+  document.getElementById('results-round-label').textContent = `Round ${game.round} Results`;
+  document.getElementById('results-row').innerHTML = photos.map(p => `
+    <div class="result-card" ${p.id===winner?.id?'style="border-color:var(--teal)"':''}>
+      <div class="result-photo">${p.photoURL?`<img src="${p.photoURL}" alt="">`:'<div style="font-size:40px;">📷</div>'}</div>
+      <div class="result-player">${p.playerName||'?'}</div>
+      <div class="result-votes">${p.votes||0} vote${(p.votes||0)!==1?'s':''} ${p.id===winner?.id?'🏆':''}</div>
+    </div>
+  `).join('');
+
+  // Show/hide next vs finish button
+  const nextBtn = document.getElementById('next-btn');
+  if ((game.round||1) >= (game.totalRounds||TOTAL_ROUNDS)) {
+    nextBtn.textContent = 'See Final Results →';
+  } else {
+    nextBtn.textContent = 'Next Round →';
+  }
+
+  goTo('screen-results');
+}
+
+// ── ADVANCE ROUND ──
+window.advanceRound = async function() {
+  if (!gameData) return;
+  const nextRound = (gameData.round||1) + 1;
+
+  if (nextRound > (gameData.totalRounds||TOTAL_ROUNDS)) {
+    await update(ref(db, `games/${ROOM}`), { status: 'finished' });
+    return;
+  }
+
+  // Pick next prompt
+  const prompt = getPrompt();
+
+  // Clear submissions and votes
+  await set(ref(db, `games/${ROOM}/submissions`), null);
+  await set(ref(db, `games/${ROOM}/votes`), null);
+
+  await update(ref(db, `games/${ROOM}`), {
+    status: 'playing',
+    round: nextRound,
+    currentPrompt: prompt,
+    timerStart: Date.now()
+  });
+};
+
+function getPrompt() {
+  if (usedPrompts.length >= PROMPTS.length) usedPrompts = [];
+  const remaining = PROMPTS.filter(p => !usedPrompts.includes(p));
+  const p = remaining[Math.floor(Math.random()*remaining.length)];
+  usedPrompts.push(p);
+  return p;
+}
+
+// ── FINAL ──
+function showFinalScreen(game) {
+  const players = game.players || {};
+  const lb = Object.entries(players)
+    .map(([id,p]) => ({id,...p}))
+    .sort((a,b)=>(b.score||0)-(a.score||0));
+
+  const winner = lb[0];
+  document.getElementById('final-winner-name').textContent = winner?.name || '?';
+  document.getElementById('final-winner-sub').textContent = `with ${winner?.score||0} point${(winner?.score||0)!==1?'s':''}`;
+  document.getElementById('final-lb').innerHTML = lb.map((p,i) => `
+    <div class="final-row ${i===0?'first':''}">
+      <div class="final-rank ${i===0?'gold':''}">${i+1}</div>
+      <div class="final-avatar" style="background:${p.color||'#00C9B1'}">${p.name[0].toUpperCase()}</div>
+      <div class="final-name">${p.name}</div>
+      <div class="final-score">${p.score||0} pts</div>
+    </div>
+  `).join('');
+  goTo('screen-final');
+}
+
+// ── PLAY AGAIN ──
+window.playAgain = async function() {
+  // Reset game to lobby
+  const players = gameData?.players || {};
+  const resetPlayers = {};
+  Object.entries(players).forEach(([id,p]) => {
+    resetPlayers[id] = {...p, score:0};
+  });
+  await update(ref(db, `games/${ROOM}`), {
+    status: 'lobby', round: 0,
+    currentPrompt: null, submissions: null, votes: null,
+    players: resetPlayers
+  });
+  window.location.href = `/?room=${ROOM}`;
+};
+
+// Unlock audio on first click (browser policy)
+document.addEventListener('click', () => ensureAudio(), {once:true});
+</script>
+</body>
+</html>
