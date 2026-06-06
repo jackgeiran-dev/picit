@@ -357,12 +357,14 @@ window.createGame = async function() {
     goTo('screen-lobby');
     statusEl.textContent = '';
 
-    // Start listening AFTER game is created
-    onValue(ref(db, `games/${code}/players`), (snapshot) => {
-      const players = [];
-      snapshot.forEach(child => players.push({ id: child.key, ...child.val() }));
-      renderPlayers(players);
-    });
+  // Start listening AFTER game is created
+    setTimeout(() => {
+      onValue(ref(db, `games/${code}/players`), (snapshot) => {
+        const players = [];
+        snapshot.forEach(child => players.push({ id: child.key, ...child.val() }));
+        renderPlayers(players);
+      });
+    }, 1500);
 
   } catch (err) {
     console.error(err);
