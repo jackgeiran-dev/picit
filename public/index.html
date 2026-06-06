@@ -296,7 +296,7 @@
 </div>
 
 <script type="module">
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, push, onValue, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -309,11 +309,9 @@ const firebaseConfig = {
   appId: "1:992063984744:web:e3222850cae7f51d9a57dd"
 };
 
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const COLORS = ['#00C9B1','#FF6B9D','#FFD93D','#6BCB77','#4D96FF','#FF9F43','#A29BFE','#FD79A8'];
-
 let currentRoomCode = null;
 
 function genRoomCode() {
