@@ -586,7 +586,9 @@ window.advanceRound = async function() {
     return;
   }
 
-  const prompt = getPrompt();
+  // Use pre-shuffled prompts stored in Firebase (no duplicates guaranteed)
+  const prompts = gameData.prompts || [];
+  const nextPrompt = prompts[nextRound - 1] || 'Selfie!';
 
   await db.ref(`games/${ROOM}/submissions`).set(null);
   await db.ref(`games/${ROOM}/votes`).set(null);
@@ -594,18 +596,10 @@ window.advanceRound = async function() {
   await db.ref(`games/${ROOM}`).update({
     status: 'playing',
     round: nextRound,
-    currentPrompt: prompt,
+    currentPrompt: nextPrompt,
     timerStart: Date.now()
   });
 };
-
-function getPrompt() {
-  if (usedPrompts.length >= PROMPTS.length) usedPrompts = [];
-  const remaining = PROMPTS.filter(p => !usedPrompts.includes(p));
-  const p = remaining[Math.floor(Math.random()*remaining.length)];
-  usedPrompts.push(p);
-  return p;
-}
 
 // ── FINAL ──
 function showFinalScreen(game) {
