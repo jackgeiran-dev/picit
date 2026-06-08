@@ -385,6 +385,7 @@ function renderChips(players) {
 
 // PROMPT SCREEN
 function startPromptScreen(game) {
+  if (document.getElementById('screen-prompt').classList.contains('hidden') === false && currentRound === (game.round || 1)) return;
   clearInterval(timerInterval);
   selectedFile = null; myPhotoURL = null; hasVoted = false;
   document.getElementById('photo-preview').style.display = 'none';
@@ -478,10 +479,13 @@ async function compressImage(file, maxSize) {
 function startVoteScreen(game) {
   if (hasVoted) return;
   const submissions = game.submissions || {};
+  const totalPlayers = Object.keys(game.players || {}).length;
+  const isTwoPlayer = totalPlayers <= 2;
   votePhotos = Object.entries(submissions)
-    .filter(([id]) => id !== myPlayerId)
+    .filter(([id]) => isTwoPlayer ? true : id !== myPlayerId)
     .map(([id, s], i) => ({ id, ...s, label: String.fromCharCode(65 + i) }));
   if (votePhotos.length === 0) return;
+  document.querySelector('[style*="You can\'t vote"]').style.display = isTwoPlayer ? 'none' : 'block';
   voteIdx = 0;
   document.getElementById('vote-prompt-label').textContent = `"${game.currentPrompt}"`;
   document.getElementById('voted-msg').classList.add('hidden');
@@ -534,13 +538,17 @@ function showRoundScore(game) {
   const players = game.players || {};
   const myVotes = subs[myPlayerId]?.votes || 0;
   document.getElementById('score-round-label').textContent = `Round ${round} Results`;
-  document.getElementById('score-emoji').textContent = myVotes >= 2 ? '🏆' : myVotes === 1 ? '🎉' : '😅';
-  document.getElementById('score-msg').textContent = myVotes >= 2 ? 'You won the round!' : myVotes === 1 ? 'Nice one!' : 'Better luck next round!';
+  const maxVotes = Math.max(...Object.values(subs).map(s => s.votes || 0));
+  const roundWinners = Object.values(subs).filter(s => (s.votes || 0) === maxVotes && maxVotes > 0);
+  const iWon = subs[myPlayerId]?.votes === maxVotes && maxVotes > 0;
+  document.getElementById('score-emoji').textContent = iWon ? '🏆' : myVotes === 1 ? '🎉' : '😅';
+  document.getElementById('score-msg').textContent = iWon ? (roundWinners.length > 1 ? 'It\'s a tie!' : 'You won the round!') : myVotes >= 1 ? 'Nice one!' : 'Better luck next round!';
   document.getElementById('score-sub').textContent = `You got ${myVotes} vote${myVotes !== 1 ? 's' : ''} this round`;
   const lb = Object.entries(players).map(([id, p]) => ({ id, ...p })).sort((a, b) => (b.score || 0) - (a.score || 0));
+  const topScore = lb[0]?.score || 0;
   document.getElementById('leaderboard-rows').innerHTML = lb.map((p, i) => `
     <div class="lb-row">
-      <div class="lb-rank ${i === 0 ? 'first' : ''}">${i + 1}</div>
+      <div class="lb-rank ${(p.score || 0) === topScore && topScore > 0 ? 'first' : ''}">${(p.score || 0) === topScore && topScore > 0 ? '🏆' : i + 1}</div>
       <div class="lb-avatar" style="background:${p.color || '#00C9B1'}">${p.name[0].toUpperCase()}</div>
       <div class="lb-name">${p.name} ${p.id === myPlayerId ? '<span style="font-size:10px;color:var(--teal);">YOU</span>' : ''}</div>
       <div class="lb-pts">${p.score || 0} pts</div>
@@ -552,9 +560,10 @@ function showRoundScore(game) {
 function showFinalScreen(game) {
   const players = game.players || {};
   const lb = Object.entries(players).map(([id, p]) => ({ id, ...p })).sort((a, b) => (b.score || 0) - (a.score || 0));
-  const winner = lb[0];
-  document.getElementById('final-winner-name').textContent = winner?.name || '?';
-  document.getElementById('final-winner-sub').textContent = `with ${winner?.score || 0} points`;
+  const topScore = lb[0]?.score || 0;
+  const winners = lb.filter(p => (p.score || 0) === topScore);
+  document.getElementById('final-winner-name').textContent = winners.length > 1 ? winners.map(w => w.name).join(' & ') : (lb[0]?.name || '?');
+  document.getElementById('final-winner-sub').textContent = `with ${topScore} point${topScore !== 1 ? 's' : ''}`;
   document.getElementById('final-lb-rows').innerHTML = lb.map((p, i) => `
     <div class="lb-row">
       <div class="lb-rank ${i === 0 ? 'first' : ''}">${i + 1}</div>
