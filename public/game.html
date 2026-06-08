@@ -178,7 +178,7 @@
   <div class="final-title" id="final-winner-name">Winner!</div>
   <div class="final-sub" id="final-winner-sub">with 0 points</div>
   <div class="final-lb" id="final-lb"></div>
-  <button class="play-again-btn" onclick="playAgain()">Play Again →</button>
+<button class="play-again-btn" onclick="playAgain()">See Charities →</button>
 </div>
 
 <!-- Firebase compat SDK — matches index.html and join.html -->
@@ -634,7 +634,7 @@ window.playAgain = async function() {
     currentPrompt: null, submissions: null, votes: null,
     players: resetPlayers
   });
-  window.location.href = `/?room=${ROOM}`;
+window.location.href = '/donate.html';
 };
 
 // Unlock audio on first click
