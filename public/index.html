@@ -371,7 +371,10 @@ document.getElementById('back-btn').addEventListener('click', () => goTo('screen
 document.getElementById('start-btn').addEventListener('click', async () => {
   if (!currentRoomCode) return;
   try {
-    await db.ref(`games/${currentRoomCode}`).update({ status: 'playing', round: 1 });
+    const prompts = ['Search "pizza"',"I don't know why I have this in my camera roll",'Best Buddies','Selfie!','Something adorable',"Something I'm proud of",'Search "car"','This photo will be on the cover of my autobiography','Search "sunset"','Search "Birthday"','Screenshot','First photo on my phone','Last photo I took',"New Year's Eve",'Thanksgiving','Search "drink"',"I don't remember this… obviously",'My life is a movie','This is what I think I look like','Search "Halloween"','Search "sunglasses"','I wish they were playing Pic It with us right now','Search "couch"','Dog or cat'];
+    const shuffled = prompts.sort(() => Math.random() - 0.5);
+    const firstPrompt = shuffled[0];
+    await db.ref(`games/${currentRoomCode}`).update({ status: 'playing', round: 1, currentPrompt: firstPrompt, timerStart: Date.now(), prompts: shuffled.slice(0, 10) });
     window.location.href = `/game.html?room=${currentRoomCode}`;
   } catch(err) {
     document.getElementById('lobby-status').textContent = 'Error starting game.';
