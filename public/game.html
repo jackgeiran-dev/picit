@@ -462,8 +462,8 @@ function showAllPhotos(photos) {
     </div>
   `).join('');
   setTimeout(() => {
-    db.ref(`games/${ROOM}`).update({ status: 'voting', voteStart: Date.now() });
     galleryRunning = false;
+    db.ref(`games/${ROOM}`).update({ status: 'voting', voteStart: Date.now() });
   }, 4000);
 }
 
@@ -472,6 +472,7 @@ let voteScreenShown = false;
 let voteRound = -1;
 function showVotingScreen(game) {
   if (voteScreenShown && voteRound === game.round) return;
+  clearInterval(voteTimerInterval);
   voteScreenShown = true;
   voteRound = game.round;
 
