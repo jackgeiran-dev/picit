@@ -477,7 +477,8 @@ async function compressImage(file, maxSize) {
 
 // VOTING
 function startVoteScreen(game) {
-  if (hasVoted) return;
+  if (hasVoted && game.round === currentRound) return;
+  hasVoted = false;
   const submissions = game.submissions || {};
   const totalPlayers = Object.keys(game.players || {}).length;
   const isTwoPlayer = totalPlayers <= 2;
