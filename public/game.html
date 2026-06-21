@@ -58,7 +58,15 @@
   .vote-bar{height:100%;background:var(--teal);border-radius:100px;width:0%;transition:width 0.7s cubic-bezier(0.34,1.56,0.64,1);}
   .vote-count{font-size:26px;font-weight:900;}
   .vote-timer{font-size:18px;font-weight:800;color:var(--muted);margin-top:28px;}
-  #screen-results{text-align:center;}
+#screen-results{text-align:center;}
+  .results-layout{display:flex;gap:24px;align-items:flex-start;width:100%;max-width:1400px;justify-content:center;}
+  .results-main{flex:1;text-align:center;}
+  .totals-sidebar{width:180px;flex-shrink:0;background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:14px 12px;}
+  .totals-sidebar-title{font-size:10px;font-weight:800;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
+  .totals-row{display:flex;align-items:center;gap:6px;margin-bottom:7px;}
+  .totals-avatar{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:#080C0B;flex-shrink:0;}
+  .totals-name{font-size:11px;font-weight:800;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .totals-score{font-size:11px;font-weight:900;color:var(--teal);}
   .results-eyebrow{font-size:16px;font-weight:800;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
   .winner-card{display:flex;align-items:center;gap:32px;background:var(--card);border:2px solid var(--teal);border-radius:28px;padding:28px 44px;box-shadow:0 0 60px var(--teal-glow);margin:14px auto 28px;max-width:780px;}
   .winner-photo{width:150px;height:150px;border-radius:14px;background:var(--card2);border:3px solid var(--teal);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -139,18 +147,23 @@
 
 <div class="screen" id="screen-results">
   <div class="results-eyebrow" id="results-round-label">Round 1 Results</div>
-  <div class="winner-card">
-    <div class="winner-photo" id="winner-photo"></div>
-    <div class="winner-info">
-      <div class="winner-crown">🏆</div>
-      <div class="winner-name" id="winner-name">…</div>
-      <div class="winner-votes" id="winner-votes-text">… votes</div>
+  <div class="results-layout">
+    <div class="totals-sidebar" id="totals-sidebar"></div>
+    <div class="results-main">
+      <div class="winner-card">
+        <div class="winner-photo" id="winner-photo"></div>
+        <div class="winner-info">
+          <div class="winner-crown">🏆</div>
+          <div class="winner-name" id="winner-name">…</div>
+          <div class="winner-votes" id="winner-votes-text">… votes</div>
+        </div>
+      </div>
+      <div class="results-row" id="results-row"></div>
+      <button class="next-btn" id="next-btn" onclick="advanceRound()">Next Round →</button>
     </div>
   </div>
-  <div class="results-row" id="results-row"></div>
-  <button class="next-btn" id="next-btn" onclick="advanceRound()">Next Round →</button>
 </div>
-
+  
 <div class="screen" id="screen-final">
   <div class="final-confetti">🎉</div>
   <div class="final-title" id="final-winner-name">Winner!</div>
@@ -301,13 +314,13 @@ function showGalleryScreen(game) {
   clearInterval(voteTimerInterval);
 
   // Snapshot submissions at the moment gallery starts — freeze them
-  const subs = game.submissions || {};
-  const photos = Object.entries(subs).map(([id,s],i) => ({
-    id, label: String.fromCharCode(65+i), ...s
-  }));
+   const subs = game.submissions || {};
+  const photos = Object.entries(subs)
+    .filter(([id,s]) => s.photoURL)
+    .map(([id,s],i) => ({ id, label: String.fromCharCode(65+i), ...s }));
 
   if (photos.length === 0) {
-    db.ref(`games/${ROOM}`).update({ status: 'voting' });
+    db.ref(`games/${ROOM}`).update({ status: 'results' });
     return;
   }
 
@@ -361,11 +374,16 @@ function showAllPhotos(photos) {
 // ── VOTING ──
 function showVotingScreen(game) {
   clearInterval(voteTimerInterval);
-  const subs = game.submissions || {};
+ const subs = game.submissions || {};
   const totalPlayers = Object.keys(game.players || {}).length;
-  const photos = Object.entries(subs).map(([id,s],i) => ({
-    id, label: String.fromCharCode(65+i), ...s
-  }));
+  const photos = Object.entries(subs)
+    .filter(([id,s]) => s.photoURL)
+    .map(([id,s],i) => ({ id, label: String.fromCharCode(65+i), ...s }));
+
+  if (photos.length === 0) {
+    awardPoints(game);
+    return;
+  }
   document.getElementById('vote-prompt-text').textContent = game.currentPrompt || '';
   renderVoteGrid(photos);
   goTo('screen-voting');
@@ -459,26 +477,15 @@ function showResultsScreen(game) {
       <div class="result-votes">${p.votes||0} vote${(p.votes||0)!==1?'s':''} ${(p.votes||0)===maxVotes && maxVotes>0?'🏆':''}</div>
     </div>`).join('');
 
-  // Running totals bar
-  const totalsHtml = totalVotesAllRounds.map(p => `
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
-      <div style="width:20px;height:20px;border-radius:50%;background:${p.color||'#00C9B1'};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#080C0B;flex-shrink:0;">${p.name[0].toUpperCase()}</div>
-      <div style="width:60px;font-size:10px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
-      <div style="flex:1;background:rgba(255,255,255,0.06);border-radius:100px;height:6px;overflow:hidden;">
-        <div style="height:100%;background:${p.color||'#00C9B1'};border-radius:100px;width:${maxScore>0?((p.score||0)/maxScore*100):0}%;transition:width 0.6s ease;"></div>
-      </div>
-      <div style="font-size:11px;font-weight:900;color:${p.color||'#00C9B1'};min-width:20px;text-align:right;">${p.score||0}</div>
-    </div>`).join('');
-  
-  // Add totals panel if not already there
-  let totalsPanel = document.getElementById('totals-panel');
-  if (!totalsPanel) {
-    totalsPanel = document.createElement('div');
-    totalsPanel.id = 'totals-panel';
-    totalsPanel.style.cssText = 'width:100%;max-width:1400px;margin:16px auto 0;background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:10px 16px;';
-    document.getElementById('screen-results').appendChild(totalsPanel);
-  }
-  totalsPanel.innerHTML = `<div style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;">Total Scores</div>${totalsHtml}`;
+  // Sidebar totals
+  document.getElementById('totals-sidebar').innerHTML = `
+    <div class="totals-sidebar-title">Totals</div>
+    ${totalVotesAllRounds.map((p,i) => `
+      <div class="totals-row">
+        <div class="totals-avatar" style="background:${p.color||'#00C9B1'}">${p.name[0].toUpperCase()}</div>
+        <div class="totals-name">${p.name}</div>
+        <div class="totals-score">${p.score||0}</div>
+      </div>`).join('')}`;
   const nextBtn = document.getElementById('next-btn');
   nextBtn.textContent = (game.round||1) >= (game.totalRounds||TOTAL_ROUNDS) ? 'See Final Results →' : 'Next Round →';
   goTo('screen-results');
