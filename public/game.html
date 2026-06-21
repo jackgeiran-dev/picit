@@ -461,23 +461,21 @@ function showResultsScreen(game) {
 
   // Running totals bar
   const totalsHtml = totalVotesAllRounds.map(p => `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-      <div style="width:28px;height:28px;border-radius:50%;background:${p.color||'#00C9B1'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#080C0B;flex-shrink:0;">${p.name[0].toUpperCase()}</div>
-      <div style="flex:1;">
-        <div style="font-size:12px;font-weight:800;margin-bottom:3px;">${p.name}</div>
-        <div style="background:rgba(255,255,255,0.06);border-radius:100px;height:8px;overflow:hidden;">
-          <div style="height:100%;background:${p.color||'#00C9B1'};border-radius:100px;width:${maxScore>0?((p.score||0)/maxScore*100):0}%;transition:width 0.6s ease;"></div>
-        </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
+      <div style="width:20px;height:20px;border-radius:50%;background:${p.color||'#00C9B1'};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#080C0B;flex-shrink:0;">${p.name[0].toUpperCase()}</div>
+      <div style="width:60px;font-size:10px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</div>
+      <div style="flex:1;background:rgba(255,255,255,0.06);border-radius:100px;height:6px;overflow:hidden;">
+        <div style="height:100%;background:${p.color||'#00C9B1'};border-radius:100px;width:${maxScore>0?((p.score||0)/maxScore*100):0}%;transition:width 0.6s ease;"></div>
       </div>
-      <div style="font-size:13px;font-weight:900;color:${p.color||'#00C9B1'};min-width:24px;text-align:right;">${p.score||0}</div>
+      <div style="font-size:11px;font-weight:900;color:${p.color||'#00C9B1'};min-width:20px;text-align:right;">${p.score||0}</div>
     </div>`).join('');
-
+  
   // Add totals panel if not already there
   let totalsPanel = document.getElementById('totals-panel');
   if (!totalsPanel) {
     totalsPanel = document.createElement('div');
     totalsPanel.id = 'totals-panel';
-    totalsPanel.style.cssText = 'width:100%;max-width:400px;margin:20px auto 0;background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px 20px;';
+    totalsPanel.style.cssText = 'width:100%;max-width:1400px;margin:16px auto 0;background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:10px 16px;';
     document.getElementById('screen-results').appendChild(totalsPanel);
   }
   totalsPanel.innerHTML = `<div style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;">Total Scores</div>${totalsHtml}`;
