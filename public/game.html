@@ -337,7 +337,7 @@ function showGalleryScreen(game) {
       stage.style.opacity = '1';
       stage.style.transform = 'scale(1)';
       idx++;
-      setTimeout(revealNext, 3500);
+      setTimeout(revealNext, 7000);
     }, 320);
   }
   revealNext();
@@ -362,6 +362,7 @@ function showAllPhotos(photos) {
 function showVotingScreen(game) {
   clearInterval(voteTimerInterval);
   const subs = game.submissions || {};
+  const totalPlayers = Object.keys(game.players || {}).length;
   const photos = Object.entries(subs).map(([id,s],i) => ({
     id, label: String.fromCharCode(65+i), ...s
   }));
@@ -373,12 +374,20 @@ function showVotingScreen(game) {
   document.getElementById('vote-timer-num').textContent = vSecs;
 
   voteTimerInterval = setInterval(() => {
-    // Update vote bars live from gameData
     const liveSubs = (gameData && gameData.submissions) || {};
     const livePhotos = Object.entries(liveSubs).map(([id,s],i) => ({
       id, label: String.fromCharCode(65+i), ...s
     }));
     updateVoteBars(livePhotos);
+
+    // Check if all votes are in
+    const votes = (gameData && gameData.votes) ? Object.keys(gameData.votes).length : 0;
+    if (votes >= totalPlayers) {
+      clearInterval(voteTimerInterval);
+      awardPoints(game);
+      return;
+    }
+
     vSecs--;
     document.getElementById('vote-timer-num').textContent = Math.max(0, vSecs);
     if (vSecs <= 0) {
@@ -438,6 +447,10 @@ function showResultsScreen(game) {
     document.getElementById('winner-votes-text').textContent = `${maxVotes} vote${maxVotes!==1?'s':''} · ${game.currentPrompt}`;
   }
 
+ const players = game.players || {};
+  const totalVotesAllRounds = Object.entries(players).map(([id,p]) => ({id,...p})).sort((a,b)=>(b.score||0)-(a.score||0));
+  const maxScore = totalVotesAllRounds[0]?.score || 0;
+
   document.getElementById('results-round-label').textContent = `Round ${game.round} Results`;
   document.getElementById('results-row').innerHTML = photos.map(p => `
     <div class="result-card" ${(p.votes||0)===maxVotes && maxVotes>0 ? 'style="border-color:var(--teal)"' : ''}>
@@ -446,6 +459,28 @@ function showResultsScreen(game) {
       <div class="result-votes">${p.votes||0} vote${(p.votes||0)!==1?'s':''} ${(p.votes||0)===maxVotes && maxVotes>0?'🏆':''}</div>
     </div>`).join('');
 
+  // Running totals bar
+  const totalsHtml = totalVotesAllRounds.map(p => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <div style="width:28px;height:28px;border-radius:50%;background:${p.color||'#00C9B1'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#080C0B;flex-shrink:0;">${p.name[0].toUpperCase()}</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:800;margin-bottom:3px;">${p.name}</div>
+        <div style="background:rgba(255,255,255,0.06);border-radius:100px;height:8px;overflow:hidden;">
+          <div style="height:100%;background:${p.color||'#00C9B1'};border-radius:100px;width:${maxScore>0?((p.score||0)/maxScore*100):0}%;transition:width 0.6s ease;"></div>
+        </div>
+      </div>
+      <div style="font-size:13px;font-weight:900;color:${p.color||'#00C9B1'};min-width:24px;text-align:right;">${p.score||0}</div>
+    </div>`).join('');
+
+  // Add totals panel if not already there
+  let totalsPanel = document.getElementById('totals-panel');
+  if (!totalsPanel) {
+    totalsPanel = document.createElement('div');
+    totalsPanel.id = 'totals-panel';
+    totalsPanel.style.cssText = 'width:100%;max-width:400px;margin:20px auto 0;background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px 20px;';
+    document.getElementById('screen-results').appendChild(totalsPanel);
+  }
+  totalsPanel.innerHTML = `<div style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px;">Total Scores</div>${totalsHtml}`;
   const nextBtn = document.getElementById('next-btn');
   nextBtn.textContent = (game.round||1) >= (game.totalRounds||TOTAL_ROUNDS) ? 'See Final Results →' : 'Next Round →';
   goTo('screen-results');
