@@ -247,8 +247,43 @@ function showScreen(id) {
   document.getElementById(id).classList.remove('hidden');
 }
 
-// URL room code pre-fill
+// URL room code pre-fill + session restore
 window.addEventListener('load', () => {
+  const saved = sessionStorage.getItem('picit_session');
+  if (saved) {
+    try {
+      const session = JSON.parse(saved);
+      db.ref(`games/${session.roomCode}`).once('value').then(snap => {
+        if (!snap.exists()) { sessionStorage.removeItem('picit_session'); startJoinScreen(); return; }
+        const gameVal = snap.val();
+        const playerExists = gameVal.players && gameVal.players[session.myPlayerId];
+        if (gameVal.status !== 'lobby' && playerExists) {
+          roomCode = session.roomCode;
+          myPlayerId = session.myPlayerId;
+          myName = session.myName;
+          myColor = session.myColor;
+          currentRound = gameVal.round || 1;
+          document.getElementById('my-avatar').textContent = myName[0].toUpperCase();
+          document.getElementById('my-avatar').style.background = myColor;
+          document.getElementById('my-name-display').textContent = myName;
+          document.getElementById('room-badge-code').textContent = roomCode;
+          showScreen('screen-waiting');
+          listenToGame();
+        } else {
+          sessionStorage.removeItem('picit_session');
+          startJoinScreen();
+        }
+      });
+    } catch(e) {
+      sessionStorage.removeItem('picit_session');
+      startJoinScreen();
+    }
+  } else {
+    startJoinScreen();
+  }
+});
+
+function startJoinScreen() {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('room');
   if (code) {
@@ -256,7 +291,7 @@ window.addEventListener('load', () => {
     document.getElementById('player-name').focus();
   }
   showScreen('screen-join');
-});
+}
 
 document.getElementById('room-code').addEventListener('input', function() {
   this.value = this.value.toUpperCase();
@@ -293,10 +328,13 @@ document.getElementById('join-btn').addEventListener('click', async () => {
     const playerRef = db.ref(`games/${code}/players`).push();
     myPlayerId = playerRef.key;
     await playerRef.set({ name, color: myColor, score: 0, joinedAt: firebase.database.ServerValue.TIMESTAMP });
-    document.getElementById('my-avatar').textContent = name[0].toUpperCase();
+   document.getElementById('my-avatar').textContent = name[0].toUpperCase();
     document.getElementById('my-avatar').style.background = myColor;
     document.getElementById('my-name-display').textContent = name;
     document.getElementById('room-badge-code').textContent = code;
+    sessionStorage.setItem('picit_session', JSON.stringify({
+      roomCode: code, myPlayerId: playerRef.key, myName: name, myColor
+    }));
     showScreen('screen-waiting');
     listenToGame();
   } catch(e) {
@@ -549,6 +587,7 @@ function showRoundScore(game) {
 // ── FINAL ──
 function showFinalScreen(game) {
   clearInterval(timerInterval);
+  sessionStorage.removeItem('picit_session');
   const players = game.players || {};
   const lb = Object.entries(players).map(([id,p]) => ({id,...p})).sort((a,b)=>(b.score||0)-(a.score||0));
   const topScore = lb[0]?.score || 0;
