@@ -428,13 +428,11 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
       submittedAt: firebase.database.ServerValue.TIMESTAMP
     });
     clearInterval(timerInterval);
-    // Hide everything — just wait silently
     document.getElementById('pick-label').style.display = 'none';
     document.getElementById('submit-btn').style.display = 'none';
     document.getElementById('photo-preview').style.display = 'none';
-    btn.textContent = 'Photo submitted!';
-    btn.style.display = 'block';
-    btn.disabled = true;
+    document.getElementById('p-timer-num').style.display = 'none';
+    document.querySelector('.timer-wrap').style.display = 'none';
   } catch(e) {
     console.error(e);
     hasSubmitted = false;
