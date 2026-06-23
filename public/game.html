@@ -210,24 +210,182 @@ function goTo(id) {
   document.getElementById(id).classList.add('active');
 }
 
-// ── AUDIO ──
-let audioCtx = null, masterGain = null, beatScheduler = null, nextBeatTime = 0, melodyIdx = 0;
+// ── AUDIO — FUNKY GROOVE (Option C) ──
+// Bass-driven funk that builds in intensity as timer runs out
+let audioCtx = null, masterGain = null, beatScheduler = null, nextBeatTime = 0;
+ 
 function ensureAudio() {
   if (audioCtx) return;
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   masterGain = audioCtx.createGain();
-  masterGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+  masterGain.gain.setValueAtTime(0.18, audioCtx.currentTime);
   masterGain.connect(audioCtx.destination);
 }
-function playKick(t){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(38,t+0.14);g.gain.setValueAtTime(0.55,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.28);o.connect(g);g.connect(masterGain);o.start(t);o.stop(t+0.3);}
-function playSnare(t){const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*0.14,audioCtx.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);const s=audioCtx.createBufferSource(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();f.type='bandpass';f.frequency.value=2200;f.Q.value=0.5;g.gain.setValueAtTime(0.38,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.14);s.buffer=buf;s.connect(f);f.connect(g);g.connect(masterGain);s.start(t);s.stop(t+0.18);}
-function playHat(t,open=false){const buf=audioCtx.createBuffer(1,audioCtx.sampleRate*0.045,audioCtx.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.5);const s=audioCtx.createBufferSource(),g=audioCtx.createGain(),f=audioCtx.createBiquadFilter();f.type='highpass';f.frequency.value=9000;g.gain.setValueAtTime(open?0.14:0.07,t);g.gain.exponentialRampToValueAtTime(0.001,t+(open?0.09:0.03));s.buffer=buf;s.connect(f);f.connect(g);g.connect(masterGain);s.start(t);s.stop(t+0.12);}
-function playNote(freq,type,t,dur,gain=0.08){const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+0.015);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.connect(g);g.connect(masterGain);o.start(t);o.stop(t+dur+0.05);}
-const MELODY=[261.63,293.66,329.63,392.00,440.00,523.25,392.00,329.63];
-const BASS=[130.81,130.81,146.83,164.81,130.81,146.83,164.81,130.81];
-function scheduleBar(t,bpm,intensity){const beat=60/bpm,eighth=beat/2;playKick(t);playKick(t+beat*2);playSnare(t+beat);playSnare(t+beat*3);for(let i=0;i<8;i++)playHat(t+i*eighth,i%4===2);for(let i=0;i<4;i++)playNote(BASS[(melodyIdx+i)%BASS.length],'sawtooth',t+i*beat,beat*0.72,0.07+intensity*0.055);if(intensity>0.28)for(let i=0;i<4;i++)playNote(MELODY[(melodyIdx+i)%MELODY.length]*2,'triangle',t+i*beat+eighth,eighth*0.75,0.04+intensity*0.038);if(intensity>0.65){playNote(523.25,'sine',t,beat*4,0.035);playNote(659.25,'sine',t,beat*4,0.025);}melodyIdx=(melodyIdx+4)%MELODY.length;}
-function startMusic(){ensureAudio();stopMusic();melodyIdx=0;nextBeatTime=audioCtx.currentTime+0.12;beatScheduler=setInterval(()=>{const elapsed=TIMER_DURATION-timerSecsLeft,progress=Math.min(1,elapsed/TIMER_DURATION),intensity=Math.min(1,progress*1.35),bpm=100+progress*46,barLen=(60/bpm)*4;while(nextBeatTime<audioCtx.currentTime+0.55){scheduleBar(nextBeatTime,bpm,intensity);nextBeatTime+=barLen;}masterGain.gain.setValueAtTime(Math.min(0.33,0.14+intensity*0.19),audioCtx.currentTime);},50);}
-function stopMusic(){if(beatScheduler){clearInterval(beatScheduler);beatScheduler=null;}if(masterGain){masterGain.gain.setValueAtTime(masterGain.gain.value,audioCtx.currentTime);masterGain.gain.linearRampToValueAtTime(0,audioCtx.currentTime+0.5);}}
+ 
+function playFunkKick(t) {
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.frequency.setValueAtTime(200, t);
+  o.frequency.exponentialRampToValueAtTime(45, t + 0.1);
+  g.gain.setValueAtTime(0.7, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+  o.connect(g); g.connect(masterGain); o.start(t); o.stop(t + 0.25);
+}
+ 
+function playFunkSnare(t, accent=false) {
+  const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.12, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, 1.5);
+  const s = audioCtx.createBufferSource(), g = audioCtx.createGain(), f = audioCtx.createBiquadFilter();
+  f.type = 'bandpass'; f.frequency.value = accent ? 2800 : 2200; f.Q.value = 0.8;
+  g.gain.setValueAtTime(accent ? 0.55 : 0.35, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+  s.buffer = buf; s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t + 0.15);
+}
+ 
+function playHihat(t, open=false) {
+  const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.05, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, 2);
+  const s = audioCtx.createBufferSource(), g = audioCtx.createGain(), f = audioCtx.createBiquadFilter();
+  f.type = 'highpass'; f.frequency.value = 10000;
+  g.gain.setValueAtTime(open ? 0.18 : 0.09, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + (open ? 0.1 : 0.04));
+  s.buffer = buf; s.connect(f); f.connect(g); g.connect(masterGain); s.start(t); s.stop(t + 0.12);
+}
+ 
+function playFunkBass(freq, t, dur, gain=0.12) {
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  const f = audioCtx.createBiquadFilter();
+  f.type = 'lowpass'; f.frequency.value = 400;
+  o.type = 'sawtooth'; o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(gain, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.85);
+  o.connect(f); f.connect(g); g.connect(masterGain); o.start(t); o.stop(t + dur);
+}
+ 
+function playFunkChord(freqs, t, dur, gain=0.04) {
+  freqs.forEach(freq => {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'triangle'; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.7);
+    o.connect(g); g.connect(masterGain); o.start(t); o.stop(t + dur);
+  });
+}
+ 
+// Funky groove pattern in E minor pentatonic
+// Bass line: E2-E2-G2-A2-B2-A2-G2-E2
+const FUNK_BASS = [82.41, 82.41, 98.00, 110.00, 123.47, 110.00, 98.00, 82.41];
+// Melody line (higher octave)
+const FUNK_MELODY = [329.63, 392.00, 440.00, 392.00, 329.63, 293.66, 329.63, 392.00];
+// Chord stabs
+const FUNK_CHORDS = [
+  [164.81, 196.00, 246.94], // Em
+  [196.00, 246.94, 293.66], // G
+  [220.00, 277.18, 329.63], // Am
+  [246.94, 293.66, 369.99], // B7
+];
+ 
+let chordIdx = 0;
+let bassIdx = 0;
+let melodyIdx = 0;
+ 
+function scheduleFunkBar(t, bpm, intensity) {
+  const beat = 60 / bpm;
+  const sixteenth = beat / 4;
+ 
+  // Kick drum — funky syncopated pattern
+  // Beats 1, and "and" of 2, beat 3, "and" of 4
+  playFunkKick(t);
+  playFunkKick(t + beat * 1.5);
+  playFunkKick(t + beat * 2);
+  playFunkKick(t + beat * 3.5);
+ 
+  // Snare on 2 and 4, with accent on 4
+  playFunkSnare(t + beat, false);
+  playFunkSnare(t + beat * 3, true);
+ 
+  // Hihat 16th notes — the funkier the better
+  for (let i = 0; i < 16; i++) {
+    const isOpen = i === 2 || i === 6 || i === 10 || i === 14;
+    const skip = i === 3 || i === 11; // ghost notes feel
+    if (!skip) playHihat(t + i * sixteenth, isOpen);
+  }
+ 
+  // Bass line — 2 notes per beat
+  for (let i = 0; i < 8; i++) {
+    const freq = FUNK_BASS[(bassIdx + i) % FUNK_BASS.length];
+    const noteT = t + i * (beat / 2);
+    const noteDur = beat * 0.45;
+    playFunkBass(freq, noteT, noteDur, 0.1 + intensity * 0.06);
+  }
+  bassIdx = (bassIdx + 8) % FUNK_BASS.length;
+ 
+  // Chord stabs on beat 1 and beat 3 (funky rhythm guitar feel)
+  if (intensity > 0.1) {
+    const chord = FUNK_CHORDS[chordIdx % FUNK_CHORDS.length];
+    playFunkChord(chord, t, beat * 0.3, 0.035 + intensity * 0.025);
+    playFunkChord(chord, t + beat * 2 + sixteenth, beat * 0.25, 0.03 + intensity * 0.02);
+    if (intensity > 0.5) {
+      playFunkChord(chord, t + beat * 3, beat * 0.2, 0.025 + intensity * 0.02);
+    }
+    chordIdx++;
+  }
+ 
+  // Melody comes in at medium intensity
+  if (intensity > 0.35) {
+    for (let i = 0; i < 4; i++) {
+      const freq = FUNK_MELODY[(melodyIdx + i) % FUNK_MELODY.length];
+      const noteT = t + i * beat + (beat / 2);
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(freq * 2, noteT);
+      g.gain.setValueAtTime(0, noteT);
+      g.gain.linearRampToValueAtTime(0.04 + intensity * 0.03, noteT + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, noteT + beat * 0.4);
+      o.connect(g); g.connect(masterGain); o.start(noteT); o.stop(noteT + beat * 0.45);
+    }
+    melodyIdx = (melodyIdx + 4) % FUNK_MELODY.length;
+  }
+}
+ 
+function startMusic() {
+  ensureAudio();
+  stopMusic();
+  chordIdx = 0; bassIdx = 0; melodyIdx = 0;
+  nextBeatTime = audioCtx.currentTime + 0.1;
+ 
+  beatScheduler = setInterval(() => {
+    const elapsed = TIMER_DURATION - timerSecsLeft;
+    const progress = Math.min(1, elapsed / TIMER_DURATION);
+    const intensity = Math.min(1, progress * 1.3);
+ 
+    // BPM starts at 96 (classic funk tempo) and builds to 126
+    const bpm = 96 + progress * 30;
+    const barLen = (60 / bpm) * 4;
+ 
+    while (nextBeatTime < audioCtx.currentTime + 0.6) {
+      scheduleFunkBar(nextBeatTime, bpm, intensity);
+      nextBeatTime += barLen;
+    }
+ 
+    // Volume builds with intensity
+    masterGain.gain.setValueAtTime(
+      Math.min(0.35, 0.16 + intensity * 0.19),
+      audioCtx.currentTime
+    );
+  }, 50);
+}
+ 
+function stopMusic() {
+  if (beatScheduler) { clearInterval(beatScheduler); beatScheduler = null; }
+  if (masterGain) {
+    masterGain.gain.setValueAtTime(masterGain.gain.value, audioCtx.currentTime);
+    masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
+  }
+}
 
 // ── LISTEN TO GAME ──
 if (ROOM) {
