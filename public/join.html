@@ -367,11 +367,11 @@ function listenToGame() {
       startPromptScreen(game);
     }
 
-    if ((game.status === 'voting' || game.status === 'gallery') && phoneProcessed.vote !== round && !hasVoted) {
+     if (game.status === 'voting' && phoneProcessed.vote !== round && !hasVoted) {
       phoneProcessed.vote = round;
       startVoteScreen(game);
     }
-
+    
     if (game.status === 'results' && phoneProcessed.score !== round) {
       phoneProcessed.score = round;
       showRoundScore(game);
