@@ -407,9 +407,9 @@ if (ROOM) {
       processedRound.voting = round;
       showVotingScreen(gameData);
     }
-    if (gameData.status === 'results' && processedRound.results !== round) {
+   if (gameData.status === 'results' && processedRound.results !== round) {
       processedRound.results = round;
-      showResultsScreen(gameData);
+      setTimeout(() => showResultsScreen(gameData), 1000);
     }
     if (gameData.status === 'finished') {
       showFinalScreen(gameData);
@@ -676,7 +676,7 @@ window.advanceRound = async function() {
 
 // ── FINAL ──
 function showFinalScreen(game) {
-  const players = (gameData && gameData.players) ? gameData.players : game.players || {};
+  const players = (gameData && gameData.players) || {};
   const totalVotesAllRounds = Object.entries(players).map(([id,p]) => ({id,...p})).sort((a,b)=>(b.score||0)-(a.score||0));
   const maxScore = totalVotesAllRounds[0]?.score || 0;
   const winners = lb.filter(p => (p.score||0) === topScore);
