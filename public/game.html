@@ -598,18 +598,17 @@ function updateVoteBars(photos) {
 
 // ── AWARD POINTS ──
 async function awardPoints(game) {
-  const subs = game.submissions || {};
-  // Read current scores fresh from Firebase to avoid stale data
-  const freshSnap = await db.ref(`games/${ROOM}/players`).once('value');
-  const freshPlayers = freshSnap.val() || {};
+  // Read BOTH submissions and players fresh from Firebase
+  const freshSnap = await db.ref(`games/${ROOM}`).once('value');
+  const freshGame = freshSnap.val() || {};
+  const freshSubs = freshGame.submissions || {};
+  const freshPlayers = freshGame.players || {};
   const updates = {};
-  Object.entries(subs).forEach(([playerId, sub]) => {
+  Object.entries(freshSubs).forEach(([playerId, sub]) => {
     const currentScore = freshPlayers[playerId] ? (freshPlayers[playerId].score || 0) : 0;
     updates[`games/${ROOM}/players/${playerId}/score`] = currentScore + (sub.votes || 0);
   });
- await db.ref().update(updates);
-  // Small delay to ensure score writes propagate before results screen renders
-  await new Promise(resolve => setTimeout(resolve, 800));
+  await db.ref().update(updates);
   await db.ref(`games/${ROOM}`).update({ status: 'results' });
 }
 // ── RESULTS ──
@@ -676,9 +675,9 @@ window.advanceRound = async function() {
 
 // ── FINAL ──
 function showFinalScreen(game) {
-  const players = (gameData && gameData.players) || {};
-  const totalVotesAllRounds = Object.entries(players).map(([id,p]) => ({id,...p})).sort((a,b)=>(b.score||0)-(a.score||0));
-  const maxScore = totalVotesAllRounds[0]?.score || 0;
+  const players = (gameData && gameData.players) || game.players || {};
+  const lb = Object.entries(players).map(([id,p]) => ({id,...p})).sort((a,b)=>(b.score||0)-(a.score||0));
+  const topScore = lb[0]?.score || 0;
   const winners = lb.filter(p => (p.score||0) === topScore);
   document.getElementById('final-winner-name').textContent = winners.map(w => w.name).join(' & ') || '?';
   document.getElementById('final-winner-sub').textContent = `with ${topScore} point${topScore!==1?'s':''}`;
