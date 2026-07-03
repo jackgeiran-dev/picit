@@ -371,9 +371,54 @@ document.getElementById('create-btn-2').addEventListener('click', createGame);
 document.getElementById('htp-btn').addEventListener('click', () => goTo('screen-htp'));
 document.getElementById('back-btn').addEventListener('click', () => goTo('screen-home'));
 document.getElementById('start-btn').addEventListener('click', async () => {
-  if (!currentRoomCode) return;
+ if (!currentRoomCode) return;
   try {
-    const prompts = ['Search "pizza"',"I don't know why I have this in my camera roll",'Best Buddies','Selfie!','Something adorable',"Something I'm proud of",'Search "car"','This photo will be on the cover of my autobiography','Search "sunset"','Search "Birthday"','Screenshot','First photo on my phone','Last photo I took',"New Year's Eve",'Thanksgiving','Search "drink"','Search "Receipt"','My life is a movie','This is what I think I look like','Search "Halloween"','Search "sunglasses"','I wish they were playing Pic It with us right now','Search "couch"','Furry Friends','Simpler Times'];
+    const prompts = [
+      "I don't know why I have this in my camera roll",
+      'Best Buddies',
+      'Selfie!',
+      'Something adorable',
+      "Something I'm proud of",
+      'Search "car"',
+      'This photo will be on the cover of my autobiography',
+      'Search "Birthday"',
+      'Screenshot',
+      'First photo on my phone',
+      'Last photo I took',
+      "New Year's Eve",
+      'Thanksgiving',
+      'Cheers!',
+      'My life is a movie',
+      'This is what I think I look like',
+      'Search "Halloween"',
+      'Search "sunglasses"',
+      'I wish they were playing Pic It with us right now',
+      'Search "couch"',
+      'Furry Friends',
+      'Simpler Times',
+      'Vacation mode',
+      'The good old days',
+      'Why do I have this',
+      'My Architectural Digest Tour',
+      'Not my finest moment',
+      'I was not ready',
+      'The camera adds ten pounds',
+      'Send help',
+      'My last meal',
+      'Worth every calorie',
+      'Guilty pleasure',
+      'My ride or die',
+      'A moment of silence',
+      'My Roman Empire',
+      'Face Card Declined',
+      'My Red Flag',
+      'Before the glow up',
+      'An unexpected beautiful thing',
+      'A place I found by accident',
+      'My villian origin story',
+      'I pay iCloud monthly to store this photo',
+      'Just one more drink',
+    ];
     const shuffled = prompts.sort(() => Math.random() - 0.5);
     const firstPrompt = shuffled[0];
     await db.ref(`games/${currentRoomCode}`).update({ status: 'playing', round: 1, currentPrompt: firstPrompt, timerStart: Date.now(), prompts: shuffled.slice(0, 10) });
