@@ -124,6 +124,7 @@
     <div class="sub-dots" id="sub-dots"></div>
     <span id="sub-count">0 of 0</span>
   </div>
+  <div id="pro-tip" style="font-size:16px;font-weight:600;color:var(--muted);text-align:center;margin-top:20px;font-style:italic;"></div>
 </div>
 
 <div class="screen" id="screen-gallery">
@@ -425,7 +426,13 @@ function showPromptScreen(game) {
   timerSecsLeft = TIMER_DURATION;
   const timerStart = game.timerStart || Date.now();
 
-  document.getElementById('prompt-text').textContent = game.currentPrompt || '…';
+ document.getElementById('prompt-text').textContent = game.currentPrompt || '…';
+  const proTips = [
+    'Pro Tip: Tap the search bar in your Photo Library and type keywords like "beach", "birthday", or "couch" to find photos fast',
+    'Pro Tip: Pinch in or out on your Photo Library to change how many photos appear per row — makes scrolling easier',
+    'Pro Tip: Screenshots, memes, and camera roll gems all count — the weirder the better'
+  ];
+  document.getElementById('pro-tip').textContent = proTips[(game.round - 1) % proTips.length];
   document.getElementById('tv-arc').style.stroke = 'var(--teal)';
   document.getElementById('tv-timer').style.color = 'var(--teal)';
   document.getElementById('tv-timer').classList.remove('pulse-anim');
