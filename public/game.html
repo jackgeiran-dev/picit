@@ -710,6 +710,11 @@ window.playAgain = async function() {
   window.location.href = '/donate.html';
 };
 
+window.addEventListener('load', () => {
+  if (sessionStorage.getItem('audioUnlocked')) {
+    ensureAudio();
+  }
+});
 document.addEventListener('click', () => ensureAudio(), {once:true});
 </script>
 </body>
