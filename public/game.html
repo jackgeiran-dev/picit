@@ -439,8 +439,8 @@ function showPromptScreen(game) {
 
   const playerCount = Object.keys(game.players || {}).length;
   renderSubDots(playerCount, Object.keys(game.submissions || {}).length);
-  goTo('screen-prompt');
-  startMusic();
+goTo('screen-prompt');
+setTimeout(() => startMusic(), 100);
 
   timerInterval = setInterval(() => {
     const elapsed = Math.floor((Date.now() - timerStart) / 1000);
