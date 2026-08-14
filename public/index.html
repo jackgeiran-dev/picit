@@ -427,7 +427,8 @@ document.getElementById('start-btn').addEventListener('click', async () => {
     const shuffled = prompts.sort(() => Math.random() - 0.5);
     const firstPrompt = shuffled[0];
     await db.ref(`games/${currentRoomCode}`).update({ status: 'playing', round: 1, currentPrompt: firstPrompt, timerStart: Date.now(), prompts: shuffled.slice(0, 10) });
-    window.location.href = `/game.html?room=${currentRoomCode}`;
+sessionStorage.setItem('audioUnlocked', '1');
+window.location.href = `/game.html?room=${currentRoomCode}`;
   } catch(err) {
     document.getElementById('lobby-status').textContent = 'Error starting game.';
   }
