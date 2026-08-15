@@ -13,9 +13,9 @@
     --border:rgba(0,201,177,0.18); --warn:#FF6B6B;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
-  html,body{width:100%;height:100%;overflow:hidden;background:var(--black);font-family:'Nunito',sans-serif;color:var(--text);}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--black);font-family:'Nunito',sans-serif;color:var(--text);} 
   body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% -10%,rgba(0,201,177,0.06) 0%,transparent 55%);} 
-  .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 60px 60px;z-index:1;opacity:0;pointer-events:none;transition:opacity 0.5s[...]
+  .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 60px 60px;z-index:1;opacity:0;pointer-events:none;transition:opacity 0.5s ease;}
   .screen.active{opacity:1;pointer-events:all;}
   .tv-header{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:24px 56px;z-index:10;}
   .tv-logo{font-family:'Lilita One',cursive;font-size:34px;color:var(--teal);letter-spacing:-1px;}
@@ -36,11 +36,11 @@
   .pulse-anim{animation:timerPulse 0.5s ease-in-out infinite;}
   #screen-gallery{text-align:center;}
   .gallery-eyebrow{font-size:17px;font-weight:800;letter-spacing:5px;color:var(--muted);text-transform:uppercase;margin-bottom:28px;}
-  .reveal-stage{width:min(360px,32vw);height:min(640px,64vh);background:var(--card2);border:3px solid var(--teal);border-radius:28px;display:flex;align-items:center;justify-content:center;box-shad[...]
+  .reveal-stage{width:min(360px,32vw);height:min(640px,64vh);background:var(--card2);border:3px solid var(--teal);border-radius:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,0.4);position:relative;overflow:hidden;}
   .reveal-img{width:100%;height:100%;object-fit:contain;}
   .reveal-placeholder{font-size:160px;}
-  .reveal-lbl{position:absolute;top:16px;left:16px;width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,0.8);border:3px solid var(--teal);display:flex;align-items:center;justify-content:[...]
-  .reveal-nav{font-size:20px;font-weight:800;color:var(--muted);}
+  .reveal-lbl{position:absolute;top:16px;left:16px;width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,0.8);border:3px solid var(--teal);display:flex;align-items:center;justify-content:center;color:var(--teal);font-weight:900;}
+  .reveal-nav{font-size:20px;font-weight:800;color:var(--muted);margin-top:12px;}
   .gallery-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px;width:100%;max-width:1400px;}
   .grid-card{aspect-ratio:1;background:var(--card);border-radius:18px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
   .grid-card img{width:100%;height:100%;object-fit:contain;}
@@ -49,7 +49,7 @@
   .vote-eyebrow{font-size:17px;font-weight:800;letter-spacing:4px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
   .vote-prompt{font-family:'Lilita One',cursive;font-size:48px;color:var(--teal);margin-bottom:36px;}
   .vote-grid{display:flex;gap:20px;width:100%;max-width:1400px;justify-content:center;flex-wrap:wrap;}
-  .vote-card{flex:1;min-width:160px;max-width:260px;background:var(--card);border:2px solid var(--border);border-radius:18px;padding:18px;text-align:center;transition:border-color 0.3s,box-shadow [...]
+  .vote-card{flex:1;min-width:160px;max-width:260px;background:var(--card);border:2px solid var(--border);border-radius:18px;padding:18px;text-align:center;transition:border-color 0.3s,box-shadow 0.3s;}
   .vote-card.leading{border-color:var(--teal);box-shadow:0 0 30px var(--teal-glow);}
   .vote-photo{aspect-ratio:1;border-radius:10px;background:var(--card2);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:12px;}
   .vote-photo img{width:100%;height:100%;object-fit:contain;}
@@ -68,8 +68,8 @@
   .totals-name{font-size:13px;font-weight:800;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .totals-score{font-size:13px;font-weight:900;color:var(--teal);} 
   .results-eyebrow{font-size:16px;font-weight:800;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
-  .winner-card{display:flex;align-items:center;gap:32px;background:var(--card);border:2px solid var(--teal);border-radius:28px;padding:28px 44px;box-shadow:0 0 60px var(--teal-glow);margin:14px au[...]
-  .winner-photo{width:150px;height:150px;border-radius:14px;background:var(--card2);border:3px solid var(--teal);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:[...]
+  .winner-card{display:flex;align-items:center;gap:32px;background:var(--card);border:2px solid var(--teal);border-radius:28px;padding:28px 44px;box-shadow:0 0 60px var(--teal-glow);margin:14px auto;}
+  .winner-photo{width:150px;height:150px;border-radius:14px;background:var(--card2);border:3px solid var(--teal);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .winner-photo img{width:100%;height:100%;object-fit:contain;}
   .winner-info{text-align:left;}
   .winner-crown{font-size:32px;margin-bottom:4px;}
@@ -81,7 +81,7 @@
   .result-photo img{width:100%;height:100%;object-fit:contain;}
   .result-player{font-size:15px;font-weight:800;margin-bottom:3px;}
   .result-votes{font-size:13px;font-weight:700;color:var(--teal);}
-  .next-btn{margin-top:32px;background:var(--teal);color:var(--black);border:none;border-radius:100px;padding:18px 56px;font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;cursor:pointe[...]
+  .next-btn{margin-top:32px;background:var(--teal);color:var(--black);border:none;border-radius:100px;padding:18px 56px;font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;cursor:pointer;}
   .next-btn:hover{transform:scale(1.04);} 
   #screen-final{text-align:center;}
   .final-confetti{font-size:48px;margin-bottom:12px;animation:bounce 0.8s ease-in-out infinite alternate;}
@@ -96,7 +96,7 @@
   .final-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:var(--black);flex-shrink:0;}
   .final-name{font-size:22px;font-weight:800;}
   .final-score{margin-left:auto;font-size:24px;font-weight:900;}
-  .play-again-btn{margin-top:40px;background:var(--teal);color:var(--black);border:none;border-radius:100px;padding:20px 64px;font-family:'Nunito',sans-serif;font-size:24px;font-weight:24px;cursor:[...]
+  .play-again-btn{margin-top:40px;background:var(--teal);color:var(--black);border:none;border-radius:100px;padding:20px 64px;font-family:'Nunito',sans-serif;font-size:24px;font-weight:900;cursor:pointer;}
   .play-again-btn:hover{transform:scale(1.04);} 
 </style>
 </head>
@@ -106,13 +106,13 @@
   <div class="tv-round" id="round-label">Round 1 of 10</div>
 </div>
 
-<div class="screen active" id="screen-prompt">
+<div class="screen active" id="screen-prompt" onclick="ensureAudio()">
   <div class="prompt-eyebrow">This round's prompt</div>
   <div class="prompt-big" id="prompt-text">Loading…</div>
   <div class="timer-wrap">
     <svg width="180" height="180" viewBox="0 0 180 180">
       <circle cx="90" cy="90" r="78" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="10"/>
-      <circle id="tv-arc" cx="90" cy="90" r="78" fill="none" stroke="var(--teal)" stroke-width="10" stroke-dasharray="490.09" stroke-dashoffset="0" stroke-linecap="round" style="transition:stroke[...]
+      <circle id="tv-arc" cx="90" cy="90" r="78" fill="none" stroke="var(--teal)" stroke-width="10" stroke-dasharray="490.09" stroke-dashoffset="0" stroke-linecap="round" style="transition:stroke 0.2s linear,stroke-dashoffset 0.5s linear;"/>
     </svg>
     <div class="timer-inner">
       <div class="timer-big" id="tv-timer">60</div>
@@ -191,7 +191,7 @@ const db = firebase.database();
 const params = new URLSearchParams(window.location.search);
 const ROOM = params.get('room');
 if (!ROOM) {
-  document.body.innerHTML = '<div style="color:white;text-align:center;padding:100px;font-family:Nunito,sans-serif;font-size:32px;">No room code found.<br><br><a href="/" style="color:#00C9B1">��[...]
+  document.body.innerHTML = '<div style="color:white;text-align:center;padding:100px;font-family:Nunito,sans-serif;font-size:32px;">No room code found.<br><br><a href="/" style="color:#00C9B1">Return home</a></div>';
 }
 
 const TIMER_DURATION = 60;
@@ -221,13 +221,6 @@ function ensureAudio() {
   masterGain = audioCtx.createGain();
   masterGain.gain.setValueAtTime(0.18, audioCtx.currentTime);
   masterGain.connect(audioCtx.destination);
-  // Try to resume immediately to satisfy autoplay policies. If resume is rejected it will be
-  // retried when the user interacts (there are click handlers that call ensureAudio()).
-  if (audioCtx.state === 'suspended' && typeof audioCtx.resume === 'function') {
-    audioCtx.resume().catch(err => {
-      console.warn('AudioContext resume rejected; will try again on user gesture.', err);
-    });
-  }
 }
  
 function playFunkKick(t) {
@@ -361,20 +354,6 @@ function scheduleFunkBar(t, bpm, intensity) {
  
 function startMusic() {
   ensureAudio();
-  // If the context is suspended (autoplay policy), try to resume first, then start scheduling.
-  if (audioCtx && audioCtx.state === 'suspended' && typeof audioCtx.resume === 'function') {
-    audioCtx.resume().then(() => {
-      _startMusicInternal();
-    }).catch(err => {
-      console.warn('Audio resume failed before starting music, starting anyway (will play once resumed):', err);
-      _startMusicInternal();
-    });
-  } else {
-    _startMusicInternal();
-  }
-}
-
-function _startMusicInternal() {
   stopMusic();
   chordIdx = 0; bassIdx = 0; melodyIdx = 0;
   nextBeatTime = audioCtx.currentTime + 0.1;
@@ -461,13 +440,8 @@ function showPromptScreen(game) {
   const playerCount = Object.keys(game.players || {}).length;
   renderSubDots(playerCount, Object.keys(game.submissions || {}).length);
  goTo('screen-prompt');
-  // Ensure audio is created and resumed before starting music so it can play on the first round.
-  ensureAudio();
-  if (audioCtx && audioCtx.state === 'suspended' && typeof audioCtx.resume === 'function') {
-    audioCtx.resume().then(() => startMusic()).catch(() => startMusic());
-  } else {
-    startMusic();
-  }
+   ensureAudio();
+  startMusic();
 
   timerInterval = setInterval(() => {
     const elapsed = Math.floor((Date.now() - timerStart) / 1000);
@@ -739,12 +713,7 @@ window.playAgain = async function() {
 
 window.addEventListener('load', () => {
   if (sessionStorage.getItem('audioUnlocked')) {
-    // Try to create/resume audio on load — helpful when coming from the creator flow, but may
-    // still fail due to autoplay policies. We also have a click handler as a fallback.
     ensureAudio();
-    if (audioCtx && audioCtx.state === 'suspended' && typeof audioCtx.resume === 'function') {
-      audioCtx.resume().catch(() => {});
-    }
   }
 });
 document.addEventListener('click', () => ensureAudio(), {once:true});
