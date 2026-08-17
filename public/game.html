@@ -606,6 +606,8 @@ function updateVoteBars(photos) {
 
 // ── AWARD POINTS ──
 async function awardPoints(game) {
+  // Small delay to allow slow connections to finish writing votes
+  await new Promise(resolve => setTimeout(resolve, 500));
   // Read BOTH submissions and players fresh from Firebase
   const freshSnap = await db.ref(`games/${ROOM}`).once('value');
   const freshGame = freshSnap.val() || {};
