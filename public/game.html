@@ -483,7 +483,14 @@ function showGalleryScreen(game) {
    const subs = game.submissions || {};
   const photos = Object.entries(subs)
     .filter(([id,s]) => s.photoURL)
-    .map(([id,s],i) => ({ id, label: String.fromCharCode(65+i), ...s }));
+    .map(([id,s],i) => ({
+      id, label: String.fromCharCode(65+i), ...s
+    }));
+  
+  // Store label assignments in Firebase so phones use same order
+  const labelMap = {};
+  photos.forEach(p => { labelMap[p.id] = p.label; });
+  db.ref(`games/${ROOM}/photoLabels`).set(labelMap);
 
   if (photos.length === 0) {
     db.ref(`games/${ROOM}`).update({ status: 'results' });
