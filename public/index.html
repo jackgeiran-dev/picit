@@ -75,7 +75,12 @@
   .htp-btns { display:flex; gap:20px; justify-content:center; }
   .htp-btns .btn { font-size:22px; padding:18px 48px; }
 
-   /* LOBBY */
+  /* MODE SELECT */
+  .mode-step { display:flex; align-items:center; gap:20px; background:var(--card2); border-radius:16px; padding:24px; cursor:pointer; transition:border 0.2s, box-shadow 0.2s; border:2px solid transparent; }
+  .mode-step:hover { border:2px solid var(--teal); box-shadow:0 0 30px var(--teal-glow); }
+  .mode-emoji { width:60px; height:60px; border-radius:50%; background:var(--teal); color:var(--black); font-size:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+  /* LOBBY */
   .lobby-inner { display:flex; gap:clamp(24px,4vw,64px); align-items:flex-start; width:90%; max-width:1100px; }
   .lobby-left { flex:1; text-align:center; }
   .lobby-right { flex:1.3; display:flex; flex-direction:column; height:85vh; }
@@ -95,7 +100,7 @@
   .waiting-slot { border:2px dashed rgba(0,201,177,0.15); border-radius:12px; padding:10px 16px; text-align:center; font-size:clamp(12px,1.5vw,17px); font-weight:700; color:rgba(255,255,255,0.18); flex-shrink:0; }
   .start-btn-wrap { display:flex; flex-direction:column; align-items:flex-start; gap:10px; flex-shrink:0; }
   .start-min-note { font-size:clamp(11px,1.2vw,14px); font-weight:700; color:var(--text-muted); }
-  
+
   /* PIKA ANIMATIONS */
   @keyframes tvglow { 0%,100%{opacity:0.85} 50%{opacity:1} }
   @keyframes float1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
@@ -116,7 +121,7 @@
   <div class="cinema-overlay"></div>
   <div class="glow-ring"></div>
   <div class="tagline">The Photo Party Game</div>
-   <div class="logo-scene">
+  <div class="logo-scene">
     <div class="logo-pic" id="logo-pic">Pic</div>
     <div class="logo-it" id="logo-it">It</div>
   </div>
@@ -132,6 +137,30 @@
   </div>
 </div>
 
+<!-- MODE SELECT -->
+<div class="screen" id="screen-mode">
+  <div class="htp-box">
+    <div class="htp-title">Choose Your Game</div>
+    <div class="htp-steps">
+      <div class="mode-step" onclick="selectMode('original')">
+        <div class="mode-emoji">🎲</div>
+        <div class="step-text">Original Game
+          <small>Use Pic It's pre-selected prompts — best for new players</small>
+        </div>
+      </div>
+      <div class="mode-step" onclick="selectMode('personalized')">
+        <div class="mode-emoji">✏️</div>
+        <div class="step-text">Personalized Game
+          <small>Players submit their own prompts — best for friends who know each other</small>
+        </div>
+      </div>
+    </div>
+    <div class="htp-btns">
+      <button class="btn btn-secondary" onclick="goTo('screen-home')">← Back</button>
+    </div>
+  </div>
+</div>
+
 <!-- HOW TO PLAY -->
 <div class="screen" id="screen-htp">
   <div class="htp-box">
@@ -140,7 +169,7 @@
       <div class="htp-step"><div class="step-num">1</div><div class="step-text">Grab your phone and go to <span style="color:var(--teal)">picit.tv</span><small>Enter the room code on the TV and enter your name</small></div></div>
       <div class="htp-step"><div class="step-num">2</div><div class="step-text">A prompt appears each round — like "Pizza" or "Something adorable"<small>Pick the best photo from your camera roll</small></div></div>
       <div class="htp-step"><div class="step-num">3</div><div class="step-text">All photos are revealed on the TV one by one - Vote for your favorite!<small>No voting for your own photo. Scout's honor.</small></div></div>
-      <div class="htp-step"><div class="step-num">4</div><div class="step-text">Most votes after 10 rounds wins!<small>Now have fun and start Pic'ing!</small></div></div>
+      <div class="htp-step"><div class="step-num">4</div><div class="step-text">Most votes after 10 rounds wins!<small>Bragging rights included.</small></div></div>
     </div>
     <div class="htp-btns">
       <button class="btn btn-secondary" id="back-btn">← Back</button>
@@ -167,6 +196,7 @@
     <div class="lobby-right">
       <div class="player-count-label">Players Joined (<span id="player-count">0</span>)</div>
       <div class="player-list" id="player-list"><div class="waiting-slot">Waiting for players…</div></div>
+      <div id="prompt-counter" style="display:none;font-size:clamp(11px,1.2vw,14px);font-weight:800;color:var(--teal);margin-bottom:10px;letter-spacing:1px;">0 of 10 prompts submitted</div>
       <div class="start-btn-wrap">
         <button class="btn btn-primary" id="start-btn" style="opacity:0.35;cursor:not-allowed;font-size:24px;padding:18px 52px;" disabled>Start Game →</button>
         <div class="start-min-note" id="start-note">Need at least 2 players to start</div>
@@ -196,6 +226,7 @@ const db = firebase.database();
 const COLORS = ['#00C9B1','#FF6B9D','#FFD93D','#6BCB77','#4D96FF','#FF9F43','#A29BFE','#FD79A8'];
 let currentRoomCode = null;
 let playersListenerActive = false;
+let selectedMode = 'original';
 
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -245,22 +276,31 @@ function renderPlayers(players) {
       list.appendChild(slot);
     }
 
-    if (players.length >= 2) {
-      startBtn.disabled = false;
-      startBtn.style.opacity = '1';
-      startBtn.style.cursor = 'pointer';
-      startNote.textContent = `${players.length} players ready — let's go!`;
-      startNote.style.color = 'var(--teal)';
-    } else {
-      startBtn.disabled = true;
-      startBtn.style.opacity = '0.35';
-      startBtn.style.cursor = 'not-allowed';
-      startNote.textContent = 'Need at least 2 players to start';
-      startNote.style.color = 'var(--text-muted)';
+    // Only update start button for original mode here
+    // Personalized mode start button is handled by the game listener
+    if (selectedMode === 'original') {
+      if (players.length >= 2) {
+        startBtn.disabled = false;
+        startBtn.style.opacity = '1';
+        startBtn.style.cursor = 'pointer';
+        startNote.textContent = `${players.length} players ready — let's go!`;
+        startNote.style.color = 'var(--teal)';
+      } else {
+        startBtn.disabled = true;
+        startBtn.style.opacity = '0.35';
+        startBtn.style.cursor = 'not-allowed';
+        startNote.textContent = 'Need at least 2 players to start';
+        startNote.style.color = 'var(--text-muted)';
+      }
     }
   } catch(e) {
     console.error('renderPlayers error:', e);
   }
+}
+
+function selectMode(mode) {
+  selectedMode = mode;
+  createGame();
 }
 
 async function createGame() {
@@ -275,7 +315,9 @@ async function createGame() {
       round: 0,
       totalRounds: 10,
       createdAt: firebase.database.ServerValue.TIMESTAMP,
-      currentPrompt: null
+      currentPrompt: null,
+      mode: selectedMode,
+      promptCount: 0
     });
 
     document.getElementById('room-code-tv').textContent = code;
@@ -283,7 +325,6 @@ async function createGame() {
     goTo('screen-lobby');
     statusEl.textContent = '';
 
-    // Setup listener for players
     setupPlayersListener(code);
 
   } catch(err) {
@@ -294,84 +335,150 @@ async function createGame() {
 }
 
 function setupPlayersListener(code) {
-  // Ensure no duplicate listeners
   if (playersListenerActive) {
     db.ref(`games/${currentRoomCode}/players`).off('value');
   }
-  
   playersListenerActive = true;
-  
+
   db.ref(`games/${code}/players`).on('value', (snapshot) => {
-    console.log('Players updated:', snapshot.numChildren());
     const players = [];
-    snapshot.forEach(child => {
-      players.push({ id: child.key, ...child.val() });
-    });
+    snapshot.forEach(child => players.push({ id: child.key, ...child.val() }));
     renderPlayers(players);
   }, (error) => {
     console.error('Listener error:', error);
   });
+
+  // Listen for prompt count in personalized games
+  if (selectedMode === 'personalized') {
+    document.getElementById('prompt-counter').style.display = 'block';
+    db.ref(`games/${code}`).on('value', (snapshot) => {
+      if (!snapshot.exists()) return;
+      const game = snapshot.val();
+      const playerPrompts = game.playerPrompts || {};
+      const allPrompts = Object.values(playerPrompts).flat();
+      const count = allPrompts.length;
+      const counter = document.getElementById('prompt-counter');
+      counter.textContent = `${count} of 10 prompts submitted`;
+
+      const startBtn = document.getElementById('start-btn');
+      const startNote = document.getElementById('start-note');
+      const playerCount = Object.keys(game.players || {}).length;
+
+      if (count >= 10 && playerCount >= 2) {
+        startBtn.disabled = false;
+        startBtn.style.opacity = '1';
+        startBtn.style.cursor = 'pointer';
+        startNote.textContent = `${playerCount} players ready — let's go!`;
+        startNote.style.color = 'var(--teal)';
+      } else {
+        startBtn.disabled = true;
+        startBtn.style.opacity = '0.35';
+        startBtn.style.cursor = 'not-allowed';
+        if (count < 10) {
+          startNote.textContent = `Waiting for ${10 - count} more prompt${10 - count !== 1 ? 's' : ''}…`;
+        } else {
+          startNote.textContent = 'Need at least 2 players to start';
+        }
+        startNote.style.color = 'var(--text-muted)';
+      }
+    });
+  }
 }
 
-document.getElementById('create-btn').addEventListener('click', createGame);
-document.getElementById('create-btn-2').addEventListener('click', createGame);
+document.getElementById('create-btn').addEventListener('click', () => goTo('screen-mode'));
+document.getElementById('create-btn-2').addEventListener('click', () => goTo('screen-mode'));
 document.getElementById('htp-btn').addEventListener('click', () => goTo('screen-htp'));
 document.getElementById('back-btn').addEventListener('click', () => goTo('screen-home'));
+
 document.getElementById('start-btn').addEventListener('click', async () => {
- if (!currentRoomCode) return;
+  if (!currentRoomCode) return;
   try {
-    const prompts = [
-      'Best Buddies',
-      'Selfie!',
-      'Something adorable',
-      "Something I'm proud of",
-      'Search "car"',
-      'This photo will be on the cover of my autobiography',
-      'Search "Birthday"',
-      'Screenshot',
-      'First photo on my phone',
-      'Last photo I took',
-      "New Year's Eve",
-      'Thanksgiving',
-      'Cheers!',
-      'My life is a movie',
-      'This is what I think I look like',
-      'Search "Halloween"',
-      'Search "sunglasses"',
-      'I wish they were playing Pic It with us right now',
-      'Search "couch"',
-      'Furry Friends',
-      'Simpler Times',
-      'Vacation mode',
-      'The good old days',
-      'Why do I have this',
-      'My Architectural Digest Tour',
-      'Not my finest moment',
-      'I was not ready',
-      'The camera adds ten pounds',
-      'Send help',
-      'My last meal',
-      'Worth every calorie',
-      'Guilty pleasure',
-      'My ride or die',
-      'A moment of silence',
-      'My Roman Empire',
-      'Face Card Declined',
-      'My Red Flag',
-      'Before the glow up',
-      'An unexpected beautiful thing',
-      'A place I found by accident',
-      'My villain origin story',
-      'I pay iCloud monthly to store this photo',
-      'Just one more drink',
-      'Looksmaxxing',
-    ];
-    const shuffled = prompts.sort(() => Math.random() - 0.5);
-    const firstPrompt = shuffled[0];
-    await db.ref(`games/${currentRoomCode}`).update({ status: 'playing', round: 1, currentPrompt: firstPrompt, timerStart: Date.now(), prompts: shuffled.slice(0, 10) });
-sessionStorage.setItem('audioUnlocked', '1');
-window.location.href = `/game.html?room=${currentRoomCode}`;
+    let finalPrompts = [];
+
+    if (selectedMode === 'personalized') {
+      const snap = await db.ref(`games/${currentRoomCode}/playerPrompts`).once('value');
+      const playerPrompts = snap.val() || {};
+      const allPrompts = Object.values(playerPrompts).flat();
+      finalPrompts = allPrompts.sort(() => Math.random() - 0.5).slice(0, 10);
+    } else {
+      const prompts = [
+        'Best Buddies',
+        'Selfie!',
+        'Something adorable',
+        "Something I'm proud of",
+        'Search "car"',
+        'This photo will be on the cover of my autobiography',
+        'Search "Birthday"',
+        'Screenshot',
+        'First photo on my phone',
+        'Last photo I took',
+        "New Year's Eve",
+        'Thanksgiving',
+        'Cheers!',
+        'My life is a movie',
+        'This is what I think I look like',
+        'Search "Halloween"',
+        'Search "sunglasses"',
+        'I wish they were playing Pic It with us right now',
+        'Search "couch"',
+        'Furry Friends',
+        'Simpler Times',
+        'Vacation mode',
+        'The good old days',
+        'Why do I have this',
+        'My Architectural Digest Tour',
+        'Not my finest moment',
+        'I was not ready',
+        'The camera adds ten pounds',
+        'Send help',
+        'My last meal',
+        'Worth every calorie',
+        'Guilty pleasure',
+        'My ride or die',
+        'A moment of silence',
+        'My Roman Empire',
+        'Face Card Declined',
+        'My Red Flag',
+        'Before the glow up',
+        'An unexpected beautiful thing',
+        'A place I found by accident',
+        'My villain origin story',
+        'I pay iCloud monthly to store this photo',
+        'Just one more drink',
+        'Looksmaxxing',
+        'The one that got away',
+        'Peak happiness',
+        'A photo I forgot I had',
+        'The best trip I ever took',
+        'A photo my mom would love',
+        'The camera adds ten pounds',
+        'I thought I deleted this',
+        'This is fine',
+        'My last meal',
+        'Worth every calorie',
+        'A photo with someone famous',
+        'My biggest fan',
+        'All downhill from here',
+        'Before the glow up',
+        'Main character moment',
+        'Villain era',
+        'Understood the assignment',
+      ];
+      finalPrompts = prompts.sort(() => Math.random() - 0.5).slice(0, 10);
+    }
+
+    const firstPrompt = finalPrompts[0];
+    await db.ref(`games/${currentRoomCode}`).update({
+      status: 'playing',
+      round: 1,
+      currentPrompt: firstPrompt,
+      timerStart: Date.now(),
+      prompts: finalPrompts
+    });
+    sessionStorage.setItem('audioUnlocked', '1');
+    window.location.href = `/game.html?room=${currentRoomCode}`;
   } catch(err) {
+    console.error(err);
     document.getElementById('lobby-status').textContent = 'Error starting game.';
   }
 });
