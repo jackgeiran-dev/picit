@@ -51,6 +51,19 @@
   .w-status{font-size:13px;color:var(--muted);font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;}
   .pulse{width:10px;height:10px;border-radius:50%;background:var(--teal);animation:pulseAnim 1.8s ease-in-out infinite;}
   @keyframes pulseAnim{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.7)}}
+  /* PERSONALIZED PROMPT SUBMISSION */
+  .prompt-submit-card{background:var(--surface);border:1.5px solid var(--teal-border);border-radius:20px;padding:20px;margin-bottom:16px;text-align:left;}
+  .prompt-submit-title{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--teal);text-transform:uppercase;margin-bottom:8px;}
+  .prompt-submit-sub{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:14px;line-height:1.5;}
+  .prompt-input-wrap{position:relative;margin-bottom:8px;}
+  .prompt-input{width:100%;background:var(--surface2);border:1.5px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 16px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:700;color:var(--text);outline:none;text-transform:none;letter-spacing:0;-webkit-appearance:none;}
+  .prompt-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,201,177,0.15);}
+  .prompt-char-count{font-size:11px;font-weight:700;color:var(--muted);text-align:right;margin-bottom:10px;}
+  .prompt-char-count.warn{color:var(--warn);}
+  .prompt-submitted-list{display:flex;flex-direction:column;gap:6px;margin-top:12px;}
+  .prompt-submitted-item{background:var(--surface2);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;}
+  .prompt-submitted-item::before{content:'✓';color:var(--teal);font-weight:900;}
+  .prompt-counter-badge{font-size:12px;font-weight:800;color:var(--teal);text-align:center;margin-top:8px;}
   /* PROMPT */
   .prompt-wrap{text-align:center;width:100%;max-width:400px;}
   .p-round{font-size:11px;font-weight:800;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:20px;}
@@ -121,7 +134,7 @@
   <div class="waiting-wrap">
     <div class="w-avatar" id="my-avatar">?</div>
     <div class="w-name" id="my-name-display">You</div>
-    <div class="w-sub">You're in! Hang tight while<br>everyone joins the game.</div>
+    <div class="w-sub" id="w-sub-text">You're in! Hang tight while<br>everyone joins the game.</div>
     <div class="room-badge">
       <span class="room-badge-label">Room</span>
       <span class="room-badge-code" id="room-badge-code">----</span>
@@ -130,7 +143,21 @@
       <div class="w-card-title">Players joined</div>
       <div class="chip-wrap" id="chips-container"></div>
     </div>
-    <div class="w-status"><span class="pulse"></span>Waiting for host to start…</div>
+
+    <!-- PERSONALIZED PROMPT SUBMISSION — shown only in personalized mode -->
+    <div class="prompt-submit-card" id="prompt-submit-card" style="display:none;">
+      <div class="prompt-submit-title">Submit a Prompt</div>
+      <div class="prompt-submit-sub">Type something fun for everyone to find a photo for. You can submit multiple!</div>
+      <div class="prompt-input-wrap">
+        <input type="text" class="prompt-input" id="prompt-input" placeholder="e.g. My happy place" maxlength="35" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+      <div class="prompt-char-count" id="prompt-char-count">0 / 35</div>
+      <button class="btn-main" id="prompt-submit-btn" disabled>Add Prompt →</button>
+      <div class="prompt-counter-badge" id="prompt-counter-badge"></div>
+      <div class="prompt-submitted-list" id="prompt-submitted-list"></div>
+    </div>
+
+    <div class="w-status"><span class="pulse"></span><span id="w-status-text">Waiting for host to start…</span></div>
   </div>
 </div>
 
@@ -232,6 +259,7 @@ let hasVoted = false;
 let timerInterval = null;
 let currentRound = 0;
 let hasSubmitted = false;
+let mySubmittedPrompts = []; // tracks prompts submitted by this player
 
 // Track which rounds we've already processed on the phone
 let phoneProcessed = { prompt: -1, vote: -1, score: -1 };
@@ -322,13 +350,21 @@ document.getElementById('join-btn').addEventListener('click', async () => {
     const playerRef = db.ref(`games/${code}/players`).push();
     myPlayerId = playerRef.key;
     await playerRef.set({ name, color: myColor, score: 0, joinedAt: firebase.database.ServerValue.TIMESTAMP });
-   document.getElementById('my-avatar').textContent = name[0].toUpperCase();
+    document.getElementById('my-avatar').textContent = name[0].toUpperCase();
     document.getElementById('my-avatar').style.background = myColor;
     document.getElementById('my-name-display').textContent = name;
     document.getElementById('room-badge-code').textContent = code;
     sessionStorage.setItem('picit_session', JSON.stringify({
       roomCode: code, myPlayerId: playerRef.key, myName: name, myColor
     }));
+
+    // Show prompt submission if personalized mode
+    if (game.mode === 'personalized') {
+      document.getElementById('prompt-submit-card').style.display = 'block';
+      document.getElementById('w-sub-text').textContent = 'Submit prompts for everyone to play!';
+      document.getElementById('w-status-text').textContent = 'Waiting for 10 prompts total…';
+    }
+
     showScreen('screen-waiting');
     listenToGame();
   } catch(e) {
@@ -337,6 +373,54 @@ document.getElementById('join-btn').addEventListener('click', async () => {
     err.classList.add('show');
     btn.textContent = 'Play →'; btn.disabled = false;
   }
+});
+
+// ── PERSONALIZED PROMPT SUBMISSION ──
+document.getElementById('prompt-input').addEventListener('input', function() {
+  const len = this.value.length;
+  const counter = document.getElementById('prompt-char-count');
+  counter.textContent = `${len} / 35`;
+  counter.className = len > 30 ? 'prompt-char-count warn' : 'prompt-char-count';
+  document.getElementById('prompt-submit-btn').disabled = len === 0 || len > 35;
+});
+
+document.getElementById('prompt-submit-btn').addEventListener('click', async () => {
+  const input = document.getElementById('prompt-input');
+  const text = input.value.trim();
+  if (!text || text.length > 35) return;
+
+  // Check total prompt count first
+  const snap = await db.ref(`games/${roomCode}/playerPrompts`).once('value');
+  const existing = snap.val() || {};
+  const allPrompts = Object.values(existing).flat();
+
+  if (allPrompts.length >= 10) {
+    document.getElementById('prompt-counter-badge').textContent = '10 prompts collected — game ready!';
+    input.value = '';
+    return;
+  }
+
+  // Check for duplicates
+  if (allPrompts.includes(text)) {
+    document.getElementById('prompt-char-count').textContent = 'That prompt already exists!';
+    document.getElementById('prompt-char-count').className = 'prompt-char-count warn';
+    return;
+  }
+
+  mySubmittedPrompts.push(text);
+
+  // Save to Firebase under this player's ID
+  await db.ref(`games/${roomCode}/playerPrompts/${myPlayerId}`).set(mySubmittedPrompts);
+
+  // Update UI
+  input.value = '';
+  document.getElementById('prompt-char-count').textContent = '0 / 35';
+  document.getElementById('prompt-submit-btn').disabled = true;
+
+  // Show submitted prompts
+  document.getElementById('prompt-submitted-list').innerHTML = mySubmittedPrompts.map(p =>
+    `<div class="prompt-submitted-item">${p}</div>`
+  ).join('');
 });
 
 // ── LISTEN TO GAME ──
@@ -351,9 +435,24 @@ function listenToGame() {
       renderChips(Object.entries(game.players).map(([id,p]) => ({id,...p})));
     }
 
+    // Update prompt counter for personalized games
+    if (game.mode === 'personalized' && game.status === 'lobby') {
+      const playerPrompts = game.playerPrompts || {};
+      const allPrompts = Object.values(playerPrompts).flat();
+      const count = allPrompts.length;
+      const badge = document.getElementById('prompt-counter-badge');
+      if (count >= 10) {
+        badge.textContent = '🎉 10 prompts collected — waiting for host to start!';
+        document.getElementById('prompt-submit-card').querySelector('input').disabled = true;
+        document.getElementById('prompt-submit-btn').disabled = true;
+      } else {
+        badge.textContent = `${count} of 10 prompts submitted`;
+      }
+    }
+
     if (game.status === 'playing' && game.currentPrompt && phoneProcessed.prompt !== round) {
       phoneProcessed.prompt = round;
-      phoneProcessed.vote = -1; // reset vote tracking for new round
+      phoneProcessed.vote = -1;
       phoneProcessed.score = -1;
       hasVoted = false;
       hasSubmitted = false;
@@ -361,11 +460,11 @@ function listenToGame() {
       startPromptScreen(game);
     }
 
-     if (game.status === 'voting' && phoneProcessed.vote !== round && !hasVoted) {
+    if (game.status === 'voting' && phoneProcessed.vote !== round && !hasVoted) {
       phoneProcessed.vote = round;
       startVoteScreen(game);
     }
-    
+
     if (game.status === 'results' && phoneProcessed.score !== round) {
       phoneProcessed.score = round;
       showRoundScore(game);
@@ -498,9 +597,8 @@ function startVoteScreen(game) {
   const totalPlayers = Object.keys(game.players || {}).length;
   const isTwoPlayer = totalPlayers <= 2;
 
-    const photoLabels = game.photoLabels || {};
+  const photoLabels = game.photoLabels || {};
   if (Object.keys(photoLabels).length === 0) {
-    // Labels not ready yet - wait and retry
     setTimeout(() => startVoteScreen(game), 500);
     return;
   }
