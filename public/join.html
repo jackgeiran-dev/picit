@@ -158,16 +158,9 @@
   <div class="vote-wrap">
     <div class="vote-round-label">Time to Vote</div>
     <div class="vote-prompt-text" id="vote-prompt-label"></div>
-    <div class="vote-photo-box" id="vote-photo-box">
-      <div class="vote-photo-lbl" id="vote-lbl">A</div>
-    </div>
-    <div class="vote-dots" id="vote-dots"></div>
-    <div class="vote-nav">
-      <button class="vote-nav-btn" id="prev-btn">←</button>
-      <button class="vote-nav-btn" id="next-btn">→</button>
-    </div>
-    <button class="btn-main" id="cast-vote-btn">Vote for this photo ✓</button>
-    <div id="no-vote-own" style="font-size:12px;font-weight:600;color:var(--muted);text-align:center;margin-top:10px;">You can't vote for your own photo</div>
+    <div style="font-size:14px;font-weight:700;color:var(--muted);text-align:center;margin-bottom:20px;">Look at the TV and tap the letter that matches your favorite photo!</div>
+    <div id="vote-buttons-grid" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:20px;"></div>
+    <div id="no-vote-own" style="font-size:12px;font-weight:600;color:var(--muted);text-align:center;margin-top:10px;display:none;"></div>
     <div id="voted-msg" style="display:none;text-align:center;padding:24px 0;">
       <div style="font-size:40px;margin-bottom:8px;">🗳️</div>
       <div style="font-size:20px;font-weight:900;margin-bottom:6px;">Vote cast!</div>
@@ -505,56 +498,43 @@ function startVoteScreen(game) {
   const isTwoPlayer = totalPlayers <= 2;
 
   votePhotos = Object.entries(submissions)
-    .filter(([id]) => isTwoPlayer ? true : id !== myPlayerId)
+    .filter(([id, s]) => s.photoURL && (isTwoPlayer ? true : id !== myPlayerId))
     .map(([id, s], i) => ({ id, ...s, label: String.fromCharCode(65 + i) }));
 
   if (votePhotos.length === 0) return;
 
-  voteIdx = 0;
   document.getElementById('vote-prompt-label').textContent = game.currentPrompt || '';
-  document.getElementById('no-vote-own').style.display = isTwoPlayer ? 'none' : 'block';
-  document.getElementById('cast-vote-btn').style.display = 'block';
   document.getElementById('voted-msg').style.display = 'none';
-  renderVoteDots();
-  renderVotePhoto();
+
+  const grid = document.getElementById('vote-buttons-grid');
+  grid.style.display = 'flex';
+  grid.innerHTML = votePhotos.map(p => `
+    <button onclick="castVoteForLabel('${p.id}')" 
+      style="width:80px;height:80px;border-radius:16px;background:var(--surface);border:2px solid var(--teal-border);
+      font-family:'Nunito',sans-serif;font-size:36px;font-weight:900;color:var(--teal);cursor:pointer;">
+      ${p.label}
+    </button>
+  `).join('');
+
   showScreen('screen-vote');
 }
 
-function renderVoteDots() {
-  document.getElementById('vote-dots').innerHTML = votePhotos.map((_, i) =>
-    `<div class="v-dot ${i === voteIdx ? 'active' : ''}"></div>`).join('');
-}
-
-function renderVotePhoto() {
-  const photo = votePhotos[voteIdx];
-  const box = document.getElementById('vote-photo-box');
-  document.getElementById('vote-lbl').textContent = photo.label;
-  const oldImg = box.querySelector('img');
-  if (oldImg) oldImg.remove();
-  if (photo.photoURL) {
-    const img = document.createElement('img');
-    img.src = photo.photoURL;
-    box.appendChild(img);
-  }
-  renderVoteDots();
-}
-
-document.getElementById('next-btn').addEventListener('click', () => { voteIdx = (voteIdx+1) % votePhotos.length; renderVotePhoto(); });
-document.getElementById('prev-btn').addEventListener('click', () => { voteIdx = (voteIdx-1+votePhotos.length) % votePhotos.length; renderVotePhoto(); });
-
-document.getElementById('cast-vote-btn').addEventListener('click', async () => {
-  if (hasVoted || votePhotos.length === 0) return;
+window.castVoteForLabel = async function(playerId) {
+  if (hasVoted) return;
   hasVoted = true;
-  const voted = votePhotos[voteIdx];
+
+  document.getElementById('vote-buttons-grid').style.display = 'none';
+  document.getElementById('voted-msg').style.display = 'block';
+
   try {
-    const voteRef = db.ref(`games/${roomCode}/submissions/${voted.id}/votes`);
+    const voteRef = db.ref(`games/${roomCode}/submissions/${playerId}/votes`);
     const snap = await voteRef.once('value');
     await voteRef.set((snap.val() || 0) + 1);
-    await db.ref(`games/${roomCode}/votes/${myPlayerId}`).set(voted.id);
-  } catch(e) { console.error(e); }
-  document.getElementById('cast-vote-btn').style.display = 'none';
-  document.getElementById('voted-msg').style.display = 'block';
-});
+    await db.ref(`games/${roomCode}/votes/${myPlayerId}`).set(playerId);
+  } catch(e) {
+    console.error(e);
+  }
+};
 
 // ── ROUND SCORE ──
 function showRoundScore(game) {
