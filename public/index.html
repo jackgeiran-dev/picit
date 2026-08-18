@@ -33,6 +33,14 @@
   .logo-pic { --from-y:-40px; font-family:'Lilita One',cursive; font-size:clamp(120px,18vw,220px); color:var(--teal); text-shadow:0 0 80px var(--teal-glow), 0 0 160px rgba(0,201,177,0.3); letter-spacing:-4px; opacity:0; transform:translateY(-40px); animation:dropIn 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.2s forwards; }
   .logo-it { font-family:'Lilita One',cursive; font-size:clamp(120px,18vw,220px); color:var(--teal); text-shadow:0 0 80px var(--teal-glow), 0 0 160px rgba(0,201,177,0.3); letter-spacing:-4px; opacity:0; transform:translateY(40px); animation:dropIn 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.5s forwards; }
   @keyframes dropIn { from{opacity:0;transform:translateY(var(--from-y,40px))} to{opacity:1;transform:translateY(0)} }
+  @keyframes glowPulse { 0%,100%{opacity:0.4;transform:scale(1)} 50%{opacity:0.8;transform:scale(1.08)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes blackFade { from{opacity:1} to{opacity:0;pointer-events:none} }
+  .cinema-overlay { position:fixed;inset:0;background:#000;z-index:999;animation:blackFade 1.2s ease 0.3s forwards; pointer-events:none; }
+  .glow-ring { position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,201,177,0.18) 0%,transparent 70%);left:50%;top:50%;transform:translate(-50%,-50%);animation:glowPulse 3s ease-in-out infinite;pointer-events:none; }
+  .tagline { opacity:0;animation:fadeUp 0.6s ease 1.4s forwards; }
+  .btn-row { opacity:0;animation:fadeUp 0.6s ease 1.7s forwards; }
+  .url-hint { opacity:0;animation:fadeUp 0.6s ease 1.9s forwards; }
   .tagline { font-size:20px; font-weight:700; letter-spacing:6px; color:var(--text-muted); text-transform:uppercase; margin-top:6px; margin-bottom:12px; }
   .pika-scene { width:100%; max-width:860px; margin:0 auto; }
   .btn-row { display:flex; gap:28px; margin-top:16px; }
@@ -95,7 +103,9 @@
 
 <!-- HOME -->
 <div class="screen active" id="screen-home">
-    <div class="tagline">The Photo Party Game</div>
+  <div class="cinema-overlay"></div>
+  <div class="glow-ring"></div>
+  <div class="tagline">The Photo Party Game</div>
    <div class="logo-scene">
     <div class="logo-pic" id="logo-pic">Pic</div>
     <div class="logo-it" id="logo-it">It</div>
