@@ -497,9 +497,16 @@ function startVoteScreen(game) {
   const totalPlayers = Object.keys(game.players || {}).length;
   const isTwoPlayer = totalPlayers <= 2;
 
+    const photoLabels = game.photoLabels || {};
+  if (Object.keys(photoLabels).length === 0) {
+    // Labels not ready yet - wait and retry
+    setTimeout(() => startVoteScreen(game), 500);
+    return;
+  }
   votePhotos = Object.entries(submissions)
-    .filter(([id, s]) => s.photoURL && (isTwoPlayer ? true : id !== myPlayerId))
-    .map(([id, s], i) => ({ id, ...s, label: String.fromCharCode(65 + i) }));
+    .filter(([id, s]) => s.photoURL && (isTwoPlayer ? true : id !== myPlayerId) && photoLabels[id])
+    .map(([id, s]) => ({ id, ...s, label: photoLabels[id] }))
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   if (votePhotos.length === 0) return;
 
