@@ -337,53 +337,45 @@ async function createGame() {
 function setupPlayersListener(code) {
   if (playersListenerActive) {
     db.ref(`games/${currentRoomCode}/players`).off('value');
+    db.ref(`games/${currentRoomCode}`).off('value');
   }
   playersListenerActive = true;
 
-  db.ref(`games/${code}/players`).on('value', (snapshot) => {
-    const players = [];
-    snapshot.forEach(child => players.push({ id: child.key, ...child.val() }));
-    renderPlayers(players);
-  }, (error) => {
-    console.error('Listener error:', error);
-  });
+  db.ref(`games/${code}`).on('value', (snapshot) => {
+    if (!snapshot.exists()) return;
+    const game = snapshot.val();
 
-  // Listen for prompt count in personalized games
-  if (selectedMode === 'personalized') {
-    document.getElementById('prompt-counter').style.display = 'block';
-    db.ref(`games/${code}`).on('value', (snapshot) => {
-      if (!snapshot.exists()) return;
-      const game = snapshot.val();
+    const players = Object.entries(game.players || {}).map(([id, p]) => ({ id, ...p }));
+    renderPlayers(players);
+
+    if (selectedMode === 'personalized') {
+      document.getElementById('prompt-counter').style.display = 'block';
       const playerPrompts = game.playerPrompts || {};
       const allPrompts = Object.values(playerPrompts).flat();
       const count = allPrompts.length;
-      const counter = document.getElementById('prompt-counter');
-      counter.textContent = `${count} of 10 prompts submitted`;
+      document.getElementById('prompt-counter').textContent = `${count} of 10 prompts submitted`;
 
       const startBtn = document.getElementById('start-btn');
       const startNote = document.getElementById('start-note');
-      const playerCount = Object.keys(game.players || {}).length;
 
-      if (count >= 10 && playerCount >= 2) {
+      if (count >= 10 && players.length >= 2) {
         startBtn.disabled = false;
         startBtn.style.opacity = '1';
         startBtn.style.cursor = 'pointer';
-        startNote.textContent = `${playerCount} players ready — let's go!`;
+        startNote.textContent = `${players.length} players ready — let's go!`;
         startNote.style.color = 'var(--teal)';
       } else {
         startBtn.disabled = true;
         startBtn.style.opacity = '0.35';
         startBtn.style.cursor = 'not-allowed';
-        if (count < 10) {
-          startNote.textContent = `Waiting for ${10 - count} more prompt${10 - count !== 1 ? 's' : ''}…`;
-        } else {
-          startNote.textContent = 'Need at least 2 players to start';
-        }
+        startNote.textContent = count < 10 ? `Waiting for ${10 - count} more prompt${10 - count !== 1 ? 's' : ''}…` : 'Need at least 2 players to start';
         startNote.style.color = 'var(--text-muted)';
       }
-    });
-  }
-}
+    }
+  }, (error) => {
+    console.error('Listener error:', error);
+  });
+
 
 document.getElementById('create-btn').addEventListener('click', () => goTo('screen-mode'));
 document.getElementById('create-btn-2').addEventListener('click', () => goTo('screen-mode'));
