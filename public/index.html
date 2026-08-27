@@ -374,8 +374,8 @@ function setupPlayersListener(code) {
     }
   }, (error) => {
     console.error('Listener error:', error);
-  });
-
+    });
+}
 
 document.getElementById('create-btn').addEventListener('click', () => goTo('screen-mode'));
 document.getElementById('create-btn-2').addEventListener('click', () => goTo('screen-mode'));
