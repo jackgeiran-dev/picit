@@ -143,6 +143,7 @@
   <div class="vote-prompt" id="vote-prompt-text"></div>
   <div class="vote-grid" id="vote-grid"></div>
   <div class="vote-timer">⏱ <span id="vote-timer-num">30</span>s remaining</div>
+  <div class="vote-timer" id="vote-status" style="margin-top:8px;"></div>
 </div>
 
 <div class="screen" id="screen-results">
@@ -597,11 +598,10 @@ function renderVoteGrid(photos) {
 }
 
 function updateVoteBars(photos) {
-  // During voting just show total votes cast, not per-photo breakdown
   const totalVotes = photos.reduce((sum, p) => sum + (p.votes||0), 0);
   const totalPlayers = Object.keys((gameData && gameData.players) || {}).length;
-  document.getElementById('vote-timer-num').parentElement.innerHTML = 
-    `⏱ <span id="vote-timer-num">${document.getElementById('vote-timer-num')?.textContent || '30'}</span>s remaining — ${totalVotes} of ${totalPlayers} voted`;
+  const voteStatus = document.getElementById('vote-status');
+  if (voteStatus) voteStatus.textContent = `${totalVotes} of ${totalPlayers} voted`;
 }
 
 // ── AWARD POINTS ──
