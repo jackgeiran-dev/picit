@@ -463,6 +463,8 @@ function showPromptScreen(game) {
         db.ref(`games/${ROOM}`).update({ status: 'gallery' });
       }, 2000);
     }
+  }, 500);
+}
 
 function renderSubDots(total, done) {
   document.getElementById('sub-dots').innerHTML = Array.from({length: total}, (_,i) =>
@@ -471,7 +473,7 @@ function renderSubDots(total, done) {
   if (done >= total && total > 0 && gameData && gameData.status === 'playing') {
     clearInterval(timerInterval);
     stopMusic();
-    setTimeout(() => db.ref(`games/${ROOM}`).update({ status: 'gallery' }), 3000);
+    setTimeout(() => db.ref(`games/${ROOM}`).update({ status: 'gallery' }), 2000);
   }
 }
 
