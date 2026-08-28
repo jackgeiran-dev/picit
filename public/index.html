@@ -79,6 +79,9 @@
   .mode-step { display:flex; align-items:center; gap:20px; background:var(--card2); border-radius:16px; padding:24px; cursor:pointer; transition:border 0.2s, box-shadow 0.2s; border:2px solid transparent; }
   .mode-step:hover { border:2px solid var(--teal); box-shadow:0 0 30px var(--teal-glow); }
   .mode-emoji { width:60px; height:60px; border-radius:50%; background:var(--teal); color:var(--black); font-size:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .rounds-btn { cursor:pointer; flex:1; background:var(--card2); border-radius:16px; padding:20px; text-align:center; font-size:22px; font-weight:900; transition:border 0.2s; border:2px solid var(--border); color:var(--text); }
+  .rounds-btn:hover { border-color:var(--teal); }
+  .rounds-btn small { display:block; font-size:13px; font-weight:600; color:var(--text-muted); margin-top:4px; }
 
   /* LOBBY */
   .lobby-inner { display:flex; gap:clamp(24px,4vw,64px); align-items:flex-start; width:90%; max-width:1100px; }
@@ -155,6 +158,13 @@
         </div>
       </div>
     </div>
+    <div style="margin-bottom:28px;">
+      <div style="font-size:13px;font-weight:800;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase;margin-bottom:16px;text-align:center;">How many rounds?</div>
+      <div style="display:flex;gap:16px;justify-content:center;">
+        <div class="rounds-btn" id="rounds-5" onclick="selectRounds(5)">5 Rounds<small>Quick game</small></div>
+        <div class="rounds-btn" id="rounds-10" onclick="selectRounds(10)" style="border-color:var(--teal);">10 Rounds<small>Full game</small></div>
+      </div>
+    </div>
     <div class="htp-btns">
       <button class="btn btn-secondary" onclick="goTo('screen-home')">← Back</button>
     </div>
@@ -227,10 +237,17 @@ const COLORS = ['#00C9B1','#FF6B9D','#FFD93D','#6BCB77','#4D96FF','#FF9F43','#A2
 let currentRoomCode = null;
 let playersListenerActive = false;
 let selectedMode = 'original';
+let selectedRounds = 10;
 
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+}
+
+function selectRounds(rounds) {
+  selectedRounds = rounds;
+  document.getElementById('rounds-5').style.borderColor = rounds === 5 ? 'var(--teal)' : 'var(--border)';
+  document.getElementById('rounds-10').style.borderColor = rounds === 10 ? 'var(--teal)' : 'var(--border)';
 }
 
 function genRoomCode() {
@@ -313,7 +330,7 @@ async function createGame() {
     await db.ref(`games/${code}`).set({
       status: 'lobby',
       round: 0,
-      totalRounds: 10,
+      totalRounds: selectedRounds,
       createdAt: firebase.database.ServerValue.TIMESTAMP,
       currentPrompt: null,
       mode: selectedMode,
@@ -353,12 +370,12 @@ function setupPlayersListener(code) {
       const playerPrompts = game.playerPrompts || {};
       const allPrompts = Object.values(playerPrompts).flat();
       const count = allPrompts.length;
-      document.getElementById('prompt-counter').textContent = `${count} of 10 prompts submitted`;
+      document.getElementById('prompt-counter').textContent = `${count} of ${selectedRounds} prompts submitted`;
 
       const startBtn = document.getElementById('start-btn');
       const startNote = document.getElementById('start-note');
 
-      if (count >= 10 && players.length >= 2) {
+      if (count >= selectedRounds && players.length >= 2) {
         startBtn.disabled = false;
         startBtn.style.opacity = '1';
         startBtn.style.cursor = 'pointer';
@@ -368,13 +385,13 @@ function setupPlayersListener(code) {
         startBtn.disabled = true;
         startBtn.style.opacity = '0.35';
         startBtn.style.cursor = 'not-allowed';
-        startNote.textContent = count < 10 ? `Waiting for ${10 - count} more prompt${10 - count !== 1 ? 's' : ''}…` : 'Need at least 2 players to start';
+        startNote.textContent = count < selectedRounds ? `Waiting for ${selectedRounds - count} more prompt${selectedRounds - count !== 1 ? 's' : ''}…` : 'Need at least 2 players to start';
         startNote.style.color = 'var(--text-muted)';
       }
     }
   }, (error) => {
     console.error('Listener error:', error);
-    });
+  });
 }
 
 document.getElementById('create-btn').addEventListener('click', () => goTo('screen-mode'));
@@ -391,7 +408,7 @@ document.getElementById('start-btn').addEventListener('click', async () => {
       const snap = await db.ref(`games/${currentRoomCode}/playerPrompts`).once('value');
       const playerPrompts = snap.val() || {};
       const allPrompts = Object.values(playerPrompts).flat();
-      finalPrompts = allPrompts.sort(() => Math.random() - 0.5).slice(0, 10);
+      finalPrompts = allPrompts.sort(() => Math.random() - 0.5).slice(0, selectedRounds);
     } else {
       const prompts = [
         'Best Buddies',
@@ -456,7 +473,7 @@ document.getElementById('start-btn').addEventListener('click', async () => {
         'Villain era',
         'Understood the assignment',
       ];
-      finalPrompts = prompts.sort(() => Math.random() - 0.5).slice(0, 10);
+      finalPrompts = prompts.sort(() => Math.random() - 0.5).slice(0, selectedRounds);
     }
 
     const firstPrompt = finalPrompts[0];
