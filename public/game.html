@@ -594,22 +594,15 @@ function renderVoteGrid(photos) {
     <div class="vote-card" id="vc-${p.id}">
       <div class="vote-photo">${p.photoURL ? `<img src="${p.photoURL}" alt="">` : '<div style="font-size:52px;">📷</div>'}</div>
       <div class="vote-lbl">${p.label}</div>
-      <div class="vote-bar-wrap"><div class="vote-bar" id="vbar-${p.id}" style="width:0%"></div></div>
-      <div class="vote-count" id="vcnt-${p.id}">0</div>
     </div>`).join('');
 }
 
 function updateVoteBars(photos) {
-  const max = Math.max(...photos.map(p => p.votes||0), 1);
-  photos.forEach(p => {
-    const bar = document.getElementById(`vbar-${p.id}`);
-    const cnt = document.getElementById(`vcnt-${p.id}`);
-    const card = document.getElementById(`vc-${p.id}`);
-    if (bar) bar.style.width = ((p.votes||0)/max*100)+'%';
-    if (cnt) cnt.textContent = p.votes||0;
-    const isLeading = (p.votes||0) > 0 && (p.votes||0) === Math.max(...photos.map(x=>x.votes||0));
-    if (card) card.classList.toggle('leading', isLeading);
-  });
+  // During voting just show total votes cast, not per-photo breakdown
+  const totalVotes = photos.reduce((sum, p) => sum + (p.votes||0), 0);
+  const totalPlayers = Object.keys((gameData && gameData.players) || {}).length;
+  document.getElementById('vote-timer-num').parentElement.innerHTML = 
+    `⏱ <span id="vote-timer-num">${document.getElementById('vote-timer-num')?.textContent || '30'}</span>s remaining — ${totalVotes} of ${totalPlayers} voted`;
 }
 
 // ── AWARD POINTS ──
