@@ -458,10 +458,11 @@ function showPromptScreen(game) {
     if (timerSecsLeft <= 0) {
       clearInterval(timerInterval);
       stopMusic();
-      db.ref(`games/${ROOM}`).update({ status: 'gallery' });
+      // Wait 2 seconds for any last-second photo uploads to complete
+      setTimeout(() => {
+        db.ref(`games/${ROOM}`).update({ status: 'gallery' });
+      }, 2000);
     }
-  }, 500);
-}
 
 function renderSubDots(total, done) {
   document.getElementById('sub-dots').innerHTML = Array.from({length: total}, (_,i) =>
@@ -470,7 +471,7 @@ function renderSubDots(total, done) {
   if (done >= total && total > 0 && gameData && gameData.status === 'playing') {
     clearInterval(timerInterval);
     stopMusic();
-    setTimeout(() => db.ref(`games/${ROOM}`).update({ status: 'gallery' }), 1200);
+    setTimeout(() => db.ref(`games/${ROOM}`).update({ status: 'gallery' }), 3000);
   }
 }
 
