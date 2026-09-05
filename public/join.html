@@ -362,7 +362,7 @@ document.getElementById('join-btn').addEventListener('click', async () => {
     if (game.mode === 'personalized') {
       document.getElementById('prompt-submit-card').style.display = 'block';
       document.getElementById('w-sub-text').textContent = 'Submit prompts for everyone to play!';
-      document.getElementById('w-status-text').textContent = 'Waiting for 10 prompts total…';
+      document.getElementById('w-status-text').textContent = `Waiting for ${game.totalRounds || 10} prompts total…`;
     }
 
     showScreen('screen-waiting');
