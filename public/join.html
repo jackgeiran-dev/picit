@@ -394,8 +394,10 @@ document.getElementById('prompt-submit-btn').addEventListener('click', async () 
   const existing = snap.val() || {};
   const allPrompts = Object.values(existing).flat();
 
-  if (allPrompts.length >= 10) {
-    document.getElementById('prompt-counter-badge').textContent = '10 prompts collected — game ready!';
+  const totalRoundsSnap = await db.ref(`games/${roomCode}/totalRounds`).once('value');
+  const neededPrompts = totalRoundsSnap.val() || 10;
+  if (allPrompts.length >= neededPrompts) {
+    document.getElementById('prompt-counter-badge').textContent = `${neededPrompts} prompts collected — game ready!`;
     input.value = '';
     return;
   }
@@ -446,7 +448,7 @@ function listenToGame() {
         document.getElementById('prompt-submit-card').querySelector('input').disabled = true;
         document.getElementById('prompt-submit-btn').disabled = true;
       } else {
-        badge.textContent = `${count} of 10 prompts submitted`;
+  badge.textContent = `${count} of ${neededPrompts} prompts submitted`;
       }
     }
 
