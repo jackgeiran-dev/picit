@@ -343,6 +343,13 @@ document.getElementById('join-btn').addEventListener('click', async () => {
       btn.textContent = 'Play →'; btn.disabled = false;
       return;
     }
+    const playerCount = Object.keys(game.players || {}).length;
+    if (playerCount >= 8) {
+      err.textContent = 'This game is full! Maximum 8 players.';
+      err.classList.add('show');
+      btn.textContent = 'Play →'; btn.disabled = false;
+      return;
+    }
     roomCode = code;
     myName = name;
     const playerCount = Object.keys(game.players || {}).length;
