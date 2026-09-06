@@ -376,7 +376,7 @@ async function createGame() {
     });
 
     document.getElementById('room-code-tv').textContent = code;
-    makeQR(`https://picit.tv/join?room=${code}`);
+    makeQR(`https://picit.tv/join.html?room=${code}`);
     document.getElementById('prompt-counter').style.display = selectedMode === 'personalized' ? 'block' : 'none';
     goTo('screen-lobby');
     statusEl.textContent = '';
