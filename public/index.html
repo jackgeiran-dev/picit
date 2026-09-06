@@ -304,6 +304,13 @@ function renderPlayers(players) {
       slot.className = 'waiting-slot';
       slot.textContent = 'Waiting for more players…';
       list.appendChild(slot);
+    } else {
+      const slot = document.createElement('div');
+      slot.className = 'waiting-slot';
+      slot.textContent = '🎮 Game is full! 8 players joined.';
+      slot.style.borderColor = 'var(--teal)';
+      slot.style.color = 'var(--teal)';
+      list.appendChild(slot);
     }
 
     // Only update start button for original mode here
