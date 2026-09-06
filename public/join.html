@@ -352,7 +352,6 @@ document.getElementById('join-btn').addEventListener('click', async () => {
     }
     roomCode = code;
     myName = name;
-    const playerCount = Object.keys(game.players || {}).length;
     myColor = COLORS[playerCount % COLORS.length];
     const playerRef = db.ref(`games/${code}/players`).push();
     myPlayerId = playerRef.key;
